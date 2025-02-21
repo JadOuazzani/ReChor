@@ -7,26 +7,38 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 
 public final class FormatterFr {
-    static String formatDuration(Duration duration) {
+    public static String formatDuration(Duration duration) {
         int secondes = (int) duration.getSeconds();
         int minutes = (secondes/60)%60;
-        int hourss = secondes/3600;
-        if (hourss == 0) {
+        int hours = secondes/3600;
+        if (hours == 0) {
             return minutes+" min";
         }
         else {
-            return hourss+" h "+ minutes+ " min";
+            return hours+" h "+ minutes+ " min";
         }
     }
 
-    static String formatTime(LocalDateTime dateTime) {
+    public static String formatTime(LocalDateTime dateTime) {
         int heures = dateTime.getHour();
         int minutes = dateTime.getMinute();
-        return heures+"h"+minutes;
+        String minute ="";
+        if (minutes <10) {
+            minute = "0" +minutes;
+        }
+        else {
+            minute =""+minutes;
+        }
+        return heures+"h"+minute;
     }
 
-    static String formatPlatformName(Stop stop){
+    public static String formatPlatformName(Stop stop){
        String platformName = stop.platformName();
+       if (stop.platformName()==null||stop.platformName().isEmpty()) {
+           return "";
+       }
+
+       else {
        char firstchar = platformName.charAt(0);
 
        if (Character.isDigit(firstchar)) {
@@ -36,20 +48,42 @@ public final class FormatterFr {
        else {
            return "quai " +platformName;
        }
-    }
+    }}
 
-    static String formatLeg(Journey.Leg.Foot footLeg) {
+    public static String formatLeg(Journey.Leg.Foot footLeg) {
         if (footLeg.isTransfer()) {
-            return "changement " + formatDuration(footLeg.duration());
+            return "changement " + "("+formatDuration(footLeg.duration())+")";
         }
 
         else {
-            return "trajet à pied " + formatDuration(footLeg.duration());
+            return "trajet à pied " + "(" + formatDuration(footLeg.duration()) +")";
         }
     }
 
-    static String formatLeg(Journey.Leg.Transport leg) {
-        if (formatPlatformName(leg.arrStop())==null);
+    public static String formatLeg(Journey.Leg.Transport leg) {
+        String depPlatformName;
+        String arrPlatformName;
+        if (leg.depStop().platformName()==null){
+            depPlatformName="";
+        }
+        else {
+            depPlatformName = " ("+formatPlatformName(leg.depStop())+")";
+        }
+
+        if (leg.arrStop().platformName()==null){
+            arrPlatformName=")";
+        }
+        else {
+            arrPlatformName = " "+formatPlatformName(leg.arrStop())+")";
+        }
+
+            return formatTime(leg.depTime()) +" "+leg.depStop().name() +depPlatformName +" → "+leg.arrStop().name()+ " (arr. "+ formatTime(leg.arrTime()) + arrPlatformName;
+
+    }
+
+    public static String formatRouteDestination(Journey.Leg.Transport transportLeg) {
+        return transportLeg.route() + " Direction " + transportLeg.destination();
+
     }
 
 

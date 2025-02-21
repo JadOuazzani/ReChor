@@ -9,15 +9,30 @@ import static java.util.Objects.requireNonNull;
 
 public record Journey(List<Leg> legs) {
 
+    public Journey {
+
+        Preconditions.checkArgument(legs!=null&&!legs.isEmpty());
+        legs = List.copyOf(legs);
+
+        for (int i=1; i<legs.size(); i++) {
+            boolean isCurrentFoot = legs.get(i) instanceof Journey.Leg.Foot;
+            boolean isPreviousFoot = legs.get(i-1) instanceof Journey.Leg.Foot;
+            Preconditions.checkArgument(isCurrentFoot != isPreviousFoot);
+            Preconditions.checkArgument(!legs.get(i).depTime().isBefore(legs.get(i-1).arrTime()));
+            Preconditions.checkArgument(legs.get(i).depStop().equals(legs.get(i-1).arrStop()));
+
+
+        }
+    }
     public sealed interface Leg{
 
-        public abstract Stop depStop();
-        public abstract LocalDateTime depTime();
-        public abstract Stop arrStop();
-        public abstract LocalDateTime arrTime();
-        public abstract List<IntermediateStop> intermediateStops();
+        public Stop depStop();
+        public LocalDateTime depTime();
+        public Stop arrStop();
+        public LocalDateTime arrTime();
+        public List<IntermediateStop> intermediateStops();
         default Duration duration() {
-            return Duration.between(arrTime(), depTime());
+            return Duration.between(depTime(), arrTime());
         }
 
 
@@ -46,7 +61,14 @@ public record Journey(List<Leg> legs) {
                 requireNonNull(depTime);
                 requireNonNull(arrStop);
                 requireNonNull(arrTime);
-                Preconditions.checkArgument(depTime.isBefore(arrTime));
+                if (intermediateStops==null) {
+                    throw new NullPointerException();
+                }
+
+                intermediateStops = List.copyOf(intermediateStops);
+
+
+                Preconditions.checkArgument(!arrTime.isBefore(depTime));
 
             }
 
@@ -58,7 +80,8 @@ public record Journey(List<Leg> legs) {
                 requireNonNull(depTime);
                 requireNonNull(arrStop);
                 requireNonNull(arrTime);
-                Preconditions.checkArgument(depTime.isBefore(arrTime));
+                Preconditions.checkArgument(!arrTime.isBefore(depTime));
+
 
 
             }
@@ -75,21 +98,7 @@ public record Journey(List<Leg> legs) {
 
         }
     }
-    public Journey {
 
-        Preconditions.checkArgument(legs!=null&&!legs.isEmpty());
-        legs = List.copyOf(legs);
-
-        for (int i=1; i<legs.size(); i++) {
-            boolean isCurrentFoot = legs.get(i) instanceof Journey.Leg.Foot;
-            boolean isPreviousFoot = legs.get(i-1) instanceof Journey.Leg.Foot;
-            Preconditions.checkArgument(isCurrentFoot != isPreviousFoot);
-            Preconditions.checkArgument(legs.get(i).depTime().isAfter(legs.get(i-1).arrTime()));
-            Preconditions.checkArgument(legs.get(i).depStop().equals(legs.get(i-1).arrStop()));
-
-
-        }
-    }
 
     public Stop depStop() {
         return legs.getFirst().depStop();
@@ -108,7 +117,7 @@ public record Journey(List<Leg> legs) {
     }
 
     public Duration duration() {
-        return Duration.between(arrTime(), depTime());
+        return Duration.between(depTime(), arrTime());
     }
 
 
