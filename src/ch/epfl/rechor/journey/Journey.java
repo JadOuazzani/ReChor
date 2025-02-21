@@ -2,6 +2,7 @@ package ch.epfl.rechor.journey;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import static java.util.Objects.requireNonNull;
 
 public record Journey(List<Leg> legs) {
 
