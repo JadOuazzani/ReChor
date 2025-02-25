@@ -7,77 +7,69 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 
 public final class FormatterFr {
+
     public static String formatDuration(Duration duration) {
         int secondes = (int) duration.getSeconds();
-        int minutes = (secondes/60)%60;
-        int hours = secondes/3600;
+        int minutes = (secondes / 60) % 60;
+        int hours = secondes / 3600;
         if (hours == 0) {
-            return minutes+" min";
-        }
-        else {
-            return hours+" h "+ minutes+ " min";
+            return minutes + " min";
+        } else {
+            return hours + " h " + minutes + " min";
         }
     }
 
     public static String formatTime(LocalDateTime dateTime) {
         int heures = dateTime.getHour();
         int minutes = dateTime.getMinute();
-        String minute ="";
-        if (minutes <10) {
-            minute = "0" +minutes;
+        String minute = "";
+        if (minutes < 10) {
+            minute = "0" + minutes;
+        } else {
+            minute = "" + minutes;
         }
-        else {
-            minute =""+minutes;
-        }
-        return heures+"h"+minute;
+        return heures + "h" + minute;
     }
 
-    public static String formatPlatformName(Stop stop){
-       String platformName = stop.platformName();
-       if (stop.platformName()==null||stop.platformName().isEmpty()) {
-           return "";
-       }
+    public static String formatPlatformName(Stop stop) {
+        String platformName = stop.platformName();
+        if (stop.platformName() == null || stop.platformName().isEmpty()) {
+            return "";
+        } else {
+            char firstChar = platformName.charAt(0);
 
-       else {
-       char firstchar = platformName.charAt(0);
-
-       if (Character.isDigit(firstchar)) {
-           return "voie " + platformName;
-       }
-
-       else {
-           return "quai " +platformName;
-       }
-    }}
+            if (Character.isDigit(firstChar)) {
+                return "voie " + platformName;
+            } else {
+                return "quai " + platformName;
+            }
+        }
+    }
 
     public static String formatLeg(Journey.Leg.Foot footLeg) {
         if (footLeg.isTransfer()) {
-            return "changement " + "("+formatDuration(footLeg.duration())+")";
-        }
-
-        else {
-            return "trajet à pied " + "(" + formatDuration(footLeg.duration()) +")";
+            return "changement " + "(" + formatDuration(footLeg.duration()) + ")";
+        } else {
+            return "trajet à pied " + "(" + formatDuration(footLeg.duration()) + ")";
         }
     }
 
     public static String formatLeg(Journey.Leg.Transport leg) {
         String depPlatformName;
         String arrPlatformName;
-        if (leg.depStop().platformName()==null){
-            depPlatformName="";
-        }
-        else {
-            depPlatformName = " ("+formatPlatformName(leg.depStop())+")";
-        }
-
-        if (leg.arrStop().platformName()==null){
-            arrPlatformName=")";
-        }
-        else {
-            arrPlatformName = " "+formatPlatformName(leg.arrStop())+")";
+        if (leg.depStop().platformName() == null) {
+            depPlatformName = "";
+        } else {
+            depPlatformName = " (" + formatPlatformName(leg.depStop()) + ")";
         }
 
-            return formatTime(leg.depTime()) +" "+leg.depStop().name() +depPlatformName +" → "+leg.arrStop().name()+ " (arr. "+ formatTime(leg.arrTime()) + arrPlatformName;
+        if (leg.arrStop().platformName() == null) {
+            arrPlatformName = ")";
+        } else {
+            arrPlatformName = " " + formatPlatformName(leg.arrStop()) + ")";
+        }
+
+        return formatTime(leg.depTime()) + " " + leg.depStop().name() + depPlatformName + " → " + leg.arrStop().name() + " (arr. " + formatTime(leg.arrTime()) + arrPlatformName;
 
     }
 
@@ -85,9 +77,6 @@ public final class FormatterFr {
         return transportLeg.route() + " Direction " + transportLeg.destination();
 
     }
-
-
-
 
 
 }
