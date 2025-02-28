@@ -33,4 +33,5 @@ public class MyPackedRangeTest {
         // Longueur trop grande (>255)
         assertThrows(IllegalArgumentException.class, () -> PackedRange.pack(0, 300));
     }
+
 }

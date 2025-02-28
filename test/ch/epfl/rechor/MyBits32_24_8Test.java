@@ -28,4 +28,6 @@ public class MyBits32_24_8Test {
         int invalidBits8 = 1 << 8; // Nécessite 9 bits
         assertThrows(IllegalArgumentException.class, () -> Bits32_24_8.pack(bits24, invalidBits8));
     }
+
+
 }

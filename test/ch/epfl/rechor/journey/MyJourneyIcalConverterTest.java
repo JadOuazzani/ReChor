@@ -36,4 +36,6 @@ public class MyJourneyIcalConverterTest {
         assertTrue(ical.contains("END:VEVENT"));
         assertTrue(ical.contains("END:VCALENDAR"));
     }
+
+
 }
