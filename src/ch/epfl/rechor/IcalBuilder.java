@@ -33,7 +33,7 @@ public class IcalBuilder {
     }
 
     public IcalBuilder add(Name name, String value) {
-        String CRLF = "\r\n";
+        String CRLF = "\r\n ";
         StringBuilder stringBuilder1 = new StringBuilder(name + ":" + value);
         while (stringBuilder1.length() > maxLength) {
             result.append(stringBuilder1, 0, maxLength).append(CRLF);

@@ -12,13 +12,13 @@ import static java.lang.Integer.toUnsignedLong;
 
 public final class PackedCriteria {
 
-    public static long DEP_MASK = 0x7FF8_0000_0000_0000L;
-    public static long ARR_MASK = 0x0007_FF80_0000_0000L;
-    public static long CHANGES_MASK = 0x0000_0007_F000_0000L;
-    public static long PAYLOAD_MASK = 0x0000_0000_FFFF_FFFFL;
-    public static long WTH_DEP_MINS = 0x0007_FFFF_FFFF_FFFFL;
-    public static long WTHT_PAYLOAD = 0xFFFF_FFFF_0000_0000L;
-    public static long WTHT_CHANGE = 0xFFFF_FFF8_0FFF_FFFFL;
+    public final static long DEP_MASK = 0x7FF8_0000_0000_0000L;
+    public final static long ARR_MASK = 0x0007_FF80_0000_0000L;
+    public final static long CHANGES_MASK = 0x0000_0007_F000_0000L;
+    public final static long PAYLOAD_MASK = 0x0000_0000_FFFF_FFFFL;
+    public final static long WTH_DEP_MINS = 0x0007_FFFF_FFFF_FFFFL;
+    public final static long WTHT_PAYLOAD = 0xFFFF_FFFF_0000_0000L;
+    public final static long WTHT_CHANGE = 0xFFFF_FFF8_0FFF_FFFFL;
 
 
     private static final int GAP = -240;
