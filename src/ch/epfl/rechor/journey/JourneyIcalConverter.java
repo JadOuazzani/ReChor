@@ -31,8 +31,9 @@ public final class JourneyIcalConverter {
                 .add(PRODID, "ReCHor")
                 .begin(VEVENT).add(UID, UUID.randomUUID().toString())
                 .add(DTSTAMP, LocalDateTime.now())
+                .add(DTSTART, journey.depTime())
                 .add(DTEND, journey.arrTime())
-                .add(SUMMARY, journey.arrStop().name() + " → " + journey.depStop().name())
+                .add(SUMMARY, journey.depStop().name() + " → " + journey.arrStop().name())
                 .add(DESCRIPTION, valueDescription(journey))
                 .end()
                 .end();
