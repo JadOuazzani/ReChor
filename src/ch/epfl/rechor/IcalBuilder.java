@@ -12,7 +12,7 @@ import java.util.ArrayList;
 public class IcalBuilder {
     private final static int maxLength = 75;
     private StringBuilder result = new StringBuilder();
-    private ArrayList<Component> components;
+    private ArrayList<Component> components = new ArrayList<>();
 
     public enum Component {
         VCALENDAR,
