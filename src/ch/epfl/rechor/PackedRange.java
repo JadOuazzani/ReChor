@@ -11,8 +11,8 @@ public final class PackedRange {
         int length = endExclusive - startInclusive;
         Preconditions.checkArgument(startInclusive >= 0 && startInclusive < Math.pow(2, 24));
         Preconditions.checkArgument(length <= 255);
-//        Preconditions.checkArgument(startInclusive < endExclusive);
-        return Bits32_24_8.pack(startInclusive, endExclusive);
+        Preconditions.checkArgument(startInclusive < endExclusive);
+        return Bits32_24_8.pack(startInclusive, length);
     }
 
     public static int length(int interval) {
