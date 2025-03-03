@@ -42,7 +42,7 @@ public final class JourneyIcalConverter {
     }
 
     private static String valueDescription(Journey journey) {
-        StringJoiner stringJoiner = new StringJoiner("\n");
+        StringJoiner stringJoiner = new StringJoiner("\\n");
 
         for (Journey.Leg leg : journey.legs()) {
             switch (leg) {

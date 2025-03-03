@@ -9,9 +9,9 @@ public final class PackedRange {
 
     public static int pack(int startInclusive, int endExclusive) {
         int length = endExclusive - startInclusive;
-        Preconditions.checkArgument(startInclusive >= 0 && startInclusive < Math.pow(2, 24));
-        Preconditions.checkArgument(length <= 255);
-        Preconditions.checkArgument(startInclusive < endExclusive);
+        Preconditions.checkArgument(startInclusive >= 0 && startInclusive < (1 << 24));
+        Preconditions.checkArgument(length >= 0 && length < (1 << 8)); // 0 ≤ length < 256
+        Preconditions.checkArgument(startInclusive <= endExclusive);   // autorise length == 0
         return Bits32_24_8.pack(startInclusive, length);
     }
 

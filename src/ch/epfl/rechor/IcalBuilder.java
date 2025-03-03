@@ -10,7 +10,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 public class IcalBuilder {
-    private final static int maxLength = 75;
+    private final static int MAX_LENGTH = 75;
+    private final static int SUBSEQUENT_MAX = 74;
     private StringBuilder result = new StringBuilder();
     private ArrayList<Component> components = new ArrayList<>();
 
@@ -33,13 +34,18 @@ public class IcalBuilder {
     }
 
     public IcalBuilder add(Name name, String value) {
-        String CRLF = "\r\n ";
-        StringBuilder stringBuilder1 = new StringBuilder(name + ":" + value);
-        while (stringBuilder1.length() > maxLength) {
-            result.append(stringBuilder1, 0, maxLength).append(CRLF);
-            stringBuilder1 = new StringBuilder(stringBuilder1.substring(maxLength));
+        String line = name + ":" + value;
+        if (line.length() <= MAX_LENGTH) {
+            result.append(line).append("\r\n");
+        } else {
+            result.append(line.substring(0, MAX_LENGTH)).append("\r\n");
+            int index = MAX_LENGTH;
+            while (index < line.length()) {
+                int end = Math.min(index + SUBSEQUENT_MAX, line.length());
+                result.append(" ").append(line.substring(index, end)).append("\r\n");
+                index = end;
+            }
         }
-        result.append(stringBuilder1);
         return this;
     }
 

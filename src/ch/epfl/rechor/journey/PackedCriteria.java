@@ -1,16 +1,16 @@
 package ch.epfl.rechor.journey;
 
 import ch.epfl.rechor.Preconditions;
+
 import static java.lang.Integer.toUnsignedLong;
 
 public final class PackedCriteria {
 
     public final static long MASK = ((1 << 12) - 1);
     public final static long PAYLOAD_MASK = 0xFFFF_FFFFL;
-    public final static long WTH_DEP_MINS = 0x0007_FFFF_FFFF_FFFFL;
-    public final static long WTHT_PAYLOAD = 0xFFFF_FFFF_0000_0000L;
-    public final static long WTHT_CHANGE = 0xFFFF_FFF8_0FFF_FFFFL;
-
+    public final static long WTH_DEP_MINS_MASK = 0x0007_FFFF_FFFF_FFFFL;
+    public final static long WTHT_PAYLOAD_MASK = 0xFFFF_FFFF_0000_0000L;
+    public final static long WTHT_CHANGE_MASK = ~(0x7FL << 32);
 
     private static final int GAP = -240;
     private static final long COMPLEMENT_CSTE = 4095L;
@@ -56,7 +56,7 @@ public final class PackedCriteria {
     }
 
     public static long withoutDepMins(long criteria) {
-        return criteria & WTH_DEP_MINS;
+        return criteria & WTH_DEP_MINS_MASK;
     }
 
     public static long withDepMins(long criteria, int depMins1) {
@@ -66,12 +66,12 @@ public final class PackedCriteria {
 
     public static long withAdditionalChange(long criteria) {
         long additionalChange = changes(criteria) + 1;
-        long withoutChange = criteria & WTHT_CHANGE;
+        long withoutChange = criteria & WTHT_CHANGE_MASK;
         return withoutChange | (additionalChange << 32);
     }
 
     public static long withPayload(long criteria, int payload1) {
-        return (criteria & WTHT_PAYLOAD) | toUnsignedLong(payload1);
+        return (criteria & WTHT_PAYLOAD_MASK) | toUnsignedLong(payload1);
     }
 
 }

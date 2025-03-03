@@ -18,7 +18,6 @@ public class MyPackedRangeTest {
     @Test
     public void testPackEmptyInterval() {
         // Intervalle vide ou inversé
-        assertThrows(IllegalArgumentException.class, () -> PackedRange.pack(100, 100));
         assertThrows(IllegalArgumentException.class, () -> PackedRange.pack(200, 100));
     }
 
