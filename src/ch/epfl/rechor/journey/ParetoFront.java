@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
 import java.util.function.LongConsumer;
 
-import static ch.epfl.rechor.journey.PackedCriteria.GAP;
+import static ch.epfl.rechor.journey.PackedCriteria.*;
 
 public class ParetoFront {
     private long[] tableTuples;
@@ -71,9 +71,10 @@ public class ParetoFront {
     public static class Builder {
         long[] tableTuples;
         int size;
+        private final static long MASK = ~0xFFFFFFFFL;
 
         public Builder() {
-            this.tableTuples = new long[1];
+            this.tableTuples = new long[2];
             this.size = 0;
         }
 
@@ -93,26 +94,96 @@ public class ParetoFront {
             return this;
         }
 
-
-        public Builder add(long packedTuple) {
-
+        int compact(long[] array, int size, long newTuple) {
+            int dst = 0;
+            for (int src = 0; src < size; src += 1) {
+                if (PackedCriteria.dominatesOrIsEqual(newTuple, array[src])) continue;
+                if (dst != src) array[dst] = array[src];
+                dst += 1;
+            }
+            return dst;
         }
 
+        public Builder add(long packedTuple) {
+            for (int i = 0; i < this.size; i++) {
+                if (PackedCriteria.dominatesOrIsEqual(tableTuples[i], packedTuple)) {
+                    return this;
+                }
+            }
+
+            int insertionIndex = 0;
+            long cmpNew = packedTuple & MASK;
+
+            while (insertionIndex < this.size) {
+                long cmpExisting = (tableTuples[insertionIndex] & MASK);
+                if (cmpExisting > cmpNew) {
+                    break;
+                }
+                insertionIndex++;
+            }
+            this.size = compact(tableTuples, size, packedTuple);
+            if (size == tableTuples.length) {
+                int newCapacity = (int) (tableTuples.length * 1.5);
+                if (newCapacity == tableTuples.length) {
+                    newCapacity++; // pour éviter de stagner en cas de taille 0 ou 1
+                }
+                long[] newArray = new long[newCapacity];
+                System.arraycopy(tableTuples, 0, newArray, 0, this.size);
+                tableTuples = newArray;
+            }
+
+            System.arraycopy(tableTuples, insertionIndex, tableTuples, insertionIndex + 1, this.size - insertionIndex);
+            tableTuples[insertionIndex] = packedTuple;
+            size++;
+
+            return this;
+        }
+
+
         public Builder add(int arrMins, int changes, int payload) {
+            long tuple = pack(arrMins, changes, payload);
+            add(tuple);
+            return this;
         }
 
         public Builder addAll(Builder that) {
+            for (int i = 0; i < that.size; i++) {
+                this.add(that.tableTuples[i]);
+            }
+            return this;
         }
 
         public boolean fullyDominates(Builder that, int depMins) {
+            for (int i = 0; i < that.size; i++) {
+                long tWithDep = withDepMins(that.tableTuples[i], depMins);
+                boolean isDominated = false;
+                for (long tuple : tableTuples) {
+                    if (dominatesOrIsEqual(tuple, tWithDep)) {
+                        isDominated = true;
+                        break;
+                    }
+                }
+
+                if (!isDominated) {
+                    return false;
+                }
+            }
+            return true;
         }
 
         public void forEach(LongConsumer action) {
-
+            for (long tuple : tableTuples) {
+                action.accept(tuple);
+            }
         }
 
         public ParetoFront build() {
+            long[] newArray = new long[this.size];
+            System.arraycopy(this.tableTuples, 0, newArray, 0, this.size);
+            return new ParetoFront(newArray);
         }
+
     }
 
 }
+
