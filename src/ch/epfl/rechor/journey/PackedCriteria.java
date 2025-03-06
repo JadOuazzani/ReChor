@@ -12,7 +12,7 @@ public final class PackedCriteria {
     public final static long WTHT_PAYLOAD_MASK = 0xFFFF_FFFF_0000_0000L;
     public final static long WTHT_CHANGE_MASK = ~(0x7FL << 32);
 
-    private static final int GAP = -240;
+    public static final int GAP = -240;
     private static final long COMPLEMENT_CSTE = 4095L;
 
     public static long pack(int arrMins, int changes, int payload) {
