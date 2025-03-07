@@ -10,7 +10,7 @@ import static ch.epfl.rechor.journey.PackedCriteria.*;
 
 public class ParetoFront {
     private long[] tableTuples;
-    public static final ParetoFront EMPTY = null;
+    public static final ParetoFront EMPTY = new ParetoFront(new long[0]);
 
 
     private ParetoFront(long[] tableTuples) {
@@ -22,22 +22,18 @@ public class ParetoFront {
     }
 
     public long get(int arrMins, int changes) {
-        long translatedArr = ((long) (arrMins - GAP)) << 39;
-        long criteriaTwo = (long) changes << 32;
-        long soughtTuple = translatedArr | criteriaTwo;
 
-        for (long candidate : tableTuples) {
-            if (candidate == soughtTuple) {
-                return candidate;
+        for (long criteria : tableTuples) {
+            if (arrMins(criteria) == arrMins && changes(criteria) == changes) {
+                return criteria;
             }
         }
-
         throw new NoSuchElementException("Critères introuvables dans la frontière");
     }
 
     public void forEach(LongConsumer action) {
-        for (long tuple : tableTuples) {
-            action.accept(tuple);
+        for (long criteria : tableTuples) {
+            action.accept(criteria);
         }
     }
 
@@ -72,9 +68,10 @@ public class ParetoFront {
         long[] tableTuples;
         int size;
         private final static long MASK = ~0xFFFFFFFFL;
+        private final static int initialCapacity = 2;
 
         public Builder() {
-            this.tableTuples = new long[2];
+            this.tableTuples = new long[initialCapacity];
             this.size = 0;
         }
 
@@ -172,8 +169,8 @@ public class ParetoFront {
         }
 
         public void forEach(LongConsumer action) {
-            for (long tuple : tableTuples) {
-                action.accept(tuple);
+            for (long criteria : tableTuples) {
+                action.accept(criteria);
             }
         }
 

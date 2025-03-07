@@ -22,19 +22,21 @@ public interface TimeTable {
     }
 
     default boolean isPlatformId(int stopId) {
-        return stopId >= stations().size();
-
+        return !isStationId(stopId) && stopId < stations().size() + platforms().size();
     }
 
     default int stationId(int stopId) {
-        return platforms().stationId(stopId);
+        if (isStationId(stopId)) {
+            return stopId;
+        } else {
+            return platforms().stationId(stopId - stations().size());
+        }
     }
 
     default String platformName(int stopId) {
-        if (isStationId(stopId)) {
-            return null;
-        } else {
-            return platforms().name(stopId);
+        if (isPlatformId(stopId)) {
+            return platforms().name(stopId - stations().size());
         }
+        return null;
     }
 }
