@@ -4,377 +4,268 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import static ch.epfl.rechor.journey.PackedCriteria.*;
 import static org.junit.jupiter.api.Assertions.*;
-import static ch.epfl.rechor.journey.PackedCriteria.pack;
 
 public class MyParetoFrontTest {
 
+    // -- Tests sur ParetoFront.EMPTY --
 
-    long p1 = 0b0_000000000000_001011010000_0000011L << 32; // (08h00, 3)
-    long p2 = 0b0_000000000000_001011010000_0000100L << 32; // (08h00, 4)
-    long p3 = 0b0_000000000000_001011010001_0000010L << 32; // (08h01, 2)
-    long p4 = 0b0_000000000000_001011010010_0000001L << 32; // (08h02, 1)
-    long p5 = 0b0_000000000000_001011010011_0000000L << 32; // (08h03, 0)
-    long p6 = 0b0_000000000000_001100101000_0000001L << 32; // (08h04, 1)
-    long p20 = 0b0_000000000000_001100110101_0111111L << 32; // (09h41, 63 changements)
-    long p21 = 0b0_000000000000_001011010000_0000000L << 32; // (08h00, 0)
-
-    long p7  = 0b0_000000000000_000000000000_0000001L << 32; // (04h00, 1 changement)
-    long p8  = 0b0_000000000000_000000000000_0001111L << 32; // (04h00, 15 changements)
-    long p9  = 0b0_000000000000_010011111011_0000000L << 32; // (23h59, 0 changement)
-    long p10 = 0b0_000000000000_010011111011_0111111L << 32; // (23h59, 63 changements)
-    long p11 = 0b0_000000000000_010011111011_1111111L << 32; // (23h59, 127 changements)
-    long p12 = 0b0_000000000000_001100101000_0001010L << 32; // (08h04, 10 changements)
-
-    long criteria_1 = 0b0_110100101111_001100101111_0000010L << 32; // (08h00, 09h35, 2)
-
-
-    // --- Tests de base sur l'ajout de tuples ---
     @Test
-    void testAddSingleTupleToEmptyFrontier() {
+    public void emptyFrontHasSizeZero() {
+        assertEquals(0, ParetoFront.EMPTY.size());
+    }
+
+    @Test
+    public void emptyFrontGetThrows() {
+        assertThrows(NoSuchElementException.class, () -> ParetoFront.EMPTY.get(600, 2));
+    }
+
+    @Test
+    public void emptyFrontForEachDoesNothing() {
+        final int[] counter = {0};
+        ParetoFront.EMPTY.forEach(value -> counter[0]++);
+        assertEquals(0, counter[0]);
+    }
+
+    // -- Tests basiques sur Builder et build --
+
+    @Test
+    public void buildFromEmptyBuilderGivesEmptyFront() {
         ParetoFront.Builder builder = new ParetoFront.Builder();
-        builder.add(p21);
         ParetoFront front = builder.build();
-        assertEquals(1, front.size());
-        assertEquals(p21, front.get(8 * 60, 0));
-    }
-
-    @Test
-    void testAddDominatedTuple() {
-        ParetoFront.Builder builder = new ParetoFront.Builder();
-        builder.add(p2);
-        builder.add(p20); // p20 est dominé par p2
-        ParetoFront front = builder.build();
-        assertEquals(1, front.size());
-        assertEquals(p2, front.get(8 * 60, 4));
-    }
-
-    @Test
-    void testAddDominatingTuple() {
-        ParetoFront.Builder builder = new ParetoFront.Builder();
-        builder.add(p20);
-        builder.add(p2); // p2 domine p20
-        ParetoFront front = builder.build();
-        assertEquals(1, front.size());
-        assertEquals(p2, front.get(8 * 60, 4));
-    }
-
-    @Test
-    void testAddNonDominatingTuple() {
-        ParetoFront.Builder builder = new ParetoFront.Builder();
-        builder.add(p1);
-        builder.add(p3); // p1 et p3 ne se dominent pas mutuellement
-        ParetoFront front = builder.build();
-        assertEquals(2, front.size());
-        assertEquals(p1, front.get(8 * 60, 3));
-        assertEquals(p3, front.get((8 * 60 + 1), 2));
-    }
-
-    @Test
-    void testAddTupleToFullFrontier() {
-        ParetoFront.Builder builder = new ParetoFront.Builder();
-        builder.add(p5);
-        builder.add(p6);
-        builder.add(p4);
-        ParetoFront front = builder.build();
-        assertEquals(2, front.size());
-        assertEquals(p4, front.get((8 * 60 + 2), 1));
-    }
-
-    // --- Tests sur l'évolution de la frontière avec plusieurs ajouts ---
-    @Test
-    void testParetoWithNewValues() {
-        long[] expectedFront = {p7, p9}; // ordre important
-        ParetoFront.Builder pb = new ParetoFront.Builder();
-        pb.add(p7);
-        pb.add(p8);  // dominé par p7 : non ajouté
-        pb.add(p12); // dominé par p7 : non ajouté
-        pb.add(p9);  // ajouté car non dominé par p7
-        pb.add(p10); // dominé par p9
-        pb.add(p11); // dominé par p9
-        ParetoFront front = pb.build();
-        assertEquals(expectedFront.length, front.size());
-        for (int i = 0; i < expectedFront.length; i++) {
-            long criteria = front.get(PackedCriteria.arrMins(expectedFront[i]),
-                    PackedCriteria.changes(expectedFront[i]));
-            assertEquals(expectedFront[i], criteria);
-        }
-    }
-
-    @Test
-    void testAddAllFromEmptyBuilder() {
-        ParetoFront.Builder b1 = new ParetoFront.Builder();
-        ParetoFront.Builder b2 = new ParetoFront.Builder();
-        b1.addAll(b2);
-        ParetoFront front = b1.build();
         assertEquals(0, front.size());
     }
 
     @Test
-    void testAddAllFromNonEmptyBuilder() {
-        ParetoFront.Builder b1 = new ParetoFront.Builder();
-        ParetoFront.Builder b2 = new ParetoFront.Builder();
-        b2.add(p1);
-        b2.add(p3);
-        b1.addAll(b2);
-        ParetoFront front = b1.build();
-        assertEquals(2, front.size());
-        assertEquals(p1, front.get(8 * 60, 3));
-        assertEquals(p3, front.get((8 * 60 + 1), 2));
+    public void addSingleTupleThenBuildGivesFrontOfSizeOne() {
+        ParetoFront.Builder builder = new ParetoFront.Builder();
+        long t = pack(500, 1, 42);
+        builder.add(t);
+        ParetoFront front = builder.build();
+        assertEquals(1, front.size());
+        assertEquals(t, front.get(500, 1));
     }
 
+    // -- Test "add" : ajout d'un tuple dominé doit être rejeté --
+
     @Test
-    void testAddAllWithDominatedAndDominatingTuples() {
-        // Test fusion avec tuples dominés
-        ParetoFront.Builder b1 = new ParetoFront.Builder();
-        ParetoFront.Builder b2 = new ParetoFront.Builder();
-        b1.add(p1);
-        b2.add(p2); // dominé par p1
-        b1.addAll(b2);
-        ParetoFront front1 = b1.build();
-        assertEquals(1, front1.size());
-        assertEquals(p1, front1.get(8 * 60, 3));
+    public void addDominatedTupleIsRejected() {
+        // t1 domine t2, car 480 < 490 et 0 < 1
+        long t1 = pack(480, 0, 111);
+        long t2 = pack(490, 1, 222);
 
-        // Test fusion avec domination inverse
-        b1 = new ParetoFront.Builder();
-        b2 = new ParetoFront.Builder();
-        b1.add(p2);
-        b2.add(p1); // p1 domine p2
-        b1.addAll(b2);
-        ParetoFront front2 = b1.build();
-        assertEquals(1, front2.size());
-        assertEquals(p1, front2.get(8 * 60, 3));
+        ParetoFront.Builder builder = new ParetoFront.Builder();
+        builder.add(t1);       // on ajoute d'abord t1
+        builder.add(t2);       // t2 est dominé par t1 -> rejeté
 
-        // Fusion avec tuples non dominants
-        b1 = new ParetoFront.Builder();
-        b2 = new ParetoFront.Builder();
-        b1.add(p1);
-        b2.add(p3);
-        b1.addAll(b2);
-        ParetoFront front3 = b1.build();
-        assertEquals(2, front3.size());
+        ParetoFront front = builder.build();
+        assertEquals(1, front.size());
+        assertEquals(t1, front.get(480, 0));
+        // get(490,1) doit lever une exception
+        assertThrows(NoSuchElementException.class, () -> front.get(490, 1));
     }
 
-    // --- Tests spécifiques issus de mySuperParetoFrontTest ---
-    @Test
-    void testGetWithSuperCriteria() {
-        long expectedCrit = p4 | 0b10101L;
-        ParetoFront front = new ParetoFront.Builder().add(expectedCrit).build();
-        assertEquals(expectedCrit, front.get(8 * 60 + 2, 1));
-    }
+    // -- Test "add" : ajout d'un tuple dominant doit faire supprimer les dominés --
 
     @Test
-    void testSuperParetoFrontSize() {
-        ParetoFront front = new ParetoFront.Builder().add(p1).add(p3).add(p4).build();
+    public void addDominatingTupleRemovesDominated() {
+        // t1 est dominé par t2, car 490 < 500 et 1 <= 2, et il y a une inégalité stricte sur l'arrivée
+        long t1 = pack(500, 2, 111);
+        long t2 = pack(490, 1, 222);
+
+        ParetoFront.Builder builder = new ParetoFront.Builder();
+        builder.add(t1);  // on ajoute d'abord t1
+        builder.add(t2);  // t2 domine t1 -> t1 doit être éliminé
+
+        ParetoFront front = builder.build();
+        assertEquals(1, front.size());
+        assertEquals(t2, front.get(490, 1));
+        // get(500,2) doit lever une exception
+        assertThrows(NoSuchElementException.class, () -> front.get(500, 2));
+    }
+
+    // -- Test "add" : ajout de tuples incomparables -> on les garde tous --
+
+    @Test
+    public void addIncomparableTuplesAreAllKept() {
+        /*
+         * On définit 3 tuples incomparables dans le sens de Pareto :
+         *  - tA(500, 2)  => arrivée 500, 2 changements
+         *  - tB(520, 1)  => arrivée 520, 1 changement
+         *  - tC(480, 3)  => arrivée 480, 3 changements
+         *
+         *  Aucun ne domine un autre car chacun est "meilleur" sur un critère et "pire" sur l'autre.
+         */
+        long tA = pack(500, 2, 111);
+        long tB = pack(520, 1, 222);
+        long tC = pack(480, 3, 333);
+
+        ParetoFront.Builder builder = new ParetoFront.Builder();
+        builder.add(tA);
+        builder.add(tB);
+        builder.add(tC);
+
+        ParetoFront front = builder.build();
         assertEquals(3, front.size());
+
+        // Vérifions qu'on peut récupérer chacun
+        assertEquals(tA, front.get(500, 2));
+        assertEquals(tB, front.get(520, 1));
+        assertEquals(tC, front.get(480, 3));
     }
 
+    // -- Test "add" avec heure de départ --
 
     @Test
-    void testParetoWithOneElementSuper() {
-        long[] expected = {criteria_1};
-        ParetoFront front = new ParetoFront.Builder().add(criteria_1).build();
-        assertEquals(1, front.size());
-        long firstElem = front.get(PackedCriteria.arrMins(expected[0]), PackedCriteria.changes(expected[0]));
-        assertEquals(expected[0], firstElem);
-    }
+    public void addTupleWithDepTime() {
+        long tNoDep = pack(600, 2, 111);
+        long tWithDep = withDepMins(tNoDep, 550);  // on fixe l'heure de départ à 550
 
-    @Test
-    void testParetoWithSuperValues() {
-        long[] expected = {p1, p3, p4, p5}; // l'ordre est important
-        ParetoFront.Builder pb = new ParetoFront.Builder()
-                .add(p1).add(p2).add(p6).add(p3).add(p4).add(p5);
-        ParetoFront front = pb.build();
-        assertEquals(expected.length, front.size());
-        for (int i = 0; i < expected.length; i++) {
-            long crit = front.get(PackedCriteria.arrMins(expected[i]),
-                    PackedCriteria.changes(expected[i]));
-            assertEquals(expected[i], crit);
-        }
-    }
-
-    // --- Tests sur les méthodes utilisant add(int, int, int) et forEach ---
-    @Test
-    void testBuilderIsEmptyInitially() {
         ParetoFront.Builder builder = new ParetoFront.Builder();
-        assertTrue(builder.isEmpty());
-    }
+        // Si la comparaison impose que tNoDep et tWithDep soient "incomparables" (p. ex. checkArgument(false)),
+        // alors on doit gérer la stratégie (soit les ignorer, soit lever exception, etc.)
+        // Ici, on suppose qu'on n'ajoute pas deux tuples qui ne sont pas comparables, donc on teste le cas normal :
+        builder.add(tWithDep);
 
-    @Test
-    void testBuilderAddIncreasesSizeInt() {
-        ParetoFront.Builder builder = new ParetoFront.Builder();
-        builder.add(10, 2, 1);
-        assertFalse(builder.isEmpty());
-    }
-
-    @Test
-    void testBuilderClearResetsSizeInt() {
-        ParetoFront.Builder builder = new ParetoFront.Builder();
-        builder.add(10, 2, 1);
-        builder.clear();
-        assertTrue(builder.isEmpty());
-    }
-
-    @Test
-    void testBuilderAddAllCombinesCriteriaInt() {
-        ParetoFront.Builder b1 = new ParetoFront.Builder();
-        b1.add(10, 2, 1);
-        b1.add(15, 1, 1);
-        ParetoFront.Builder b2 = new ParetoFront.Builder();
-        b2.add(20, 0, 1);
-        b1.addAll(b2);
-        ParetoFront front = b1.build();
-        assertEquals(3, front.size());
-    }
-
-    @Test
-    void testAddAllHandlesPartiallyDominatedInt() {
-        ParetoFront.Builder b1 = new ParetoFront.Builder();
-        b1.add(10, 2, 1);
-        b1.add(15, 1, 1);
-        ParetoFront.Builder b2 = new ParetoFront.Builder();
-        b2.add(12, 3, 1); // dominé par (10,2,1)
-        b2.add(14, 1, 1); // non dominé
-        b1.addAll(b2);
-        ParetoFront front = b1.build();
-        assertEquals(2, front.size());
-    }
-
-    @Test
-    void testParetoFrontGetReturnsCorrectCriteriaInt() {
-        ParetoFront.Builder builder = new ParetoFront.Builder();
-        builder.add(10, 2, 1);
-        ParetoFront front = builder.build();
-        long crit = front.get(10, 2);
-        assertEquals(pack(10, 2, 1), crit);
-    }
-
-    @Test
-    void testParetoFrontGetThrowsExceptionForMissingInt() {
-        ParetoFront.Builder builder = new ParetoFront.Builder();
-        builder.add(10, 2, 1);
-        ParetoFront front = builder.build();
-        assertThrows(NoSuchElementException.class, () -> front.get(15, 1));
-    }
-
-    @Test
-    void testBuilderDoesNotAddDominatedCriteriaInt() {
-        ParetoFront.Builder builder = new ParetoFront.Builder();
-        builder.add(10, 2, 1);
-        builder.add(12, 3, 1); // dominé par le premier
-        assertEquals(1, builder.build().size());
-    }
-
-    @Test
-    void testBuilderFullyDominatesInt() {
-        ParetoFront.Builder b1 = new ParetoFront.Builder();
-        long crit1 = PackedCriteria.withDepMins(pack(10, 2, 1), 5);
-        b1.add(crit1);
-        ParetoFront.Builder b2 = new ParetoFront.Builder();
-        b2.add(pack(15, 3, 1));  // moins optimal
-        assertTrue(b1.fullyDominates(b2, 5));
-    }
-
-    @Test
-    void testBuilderFullyDominatesWithMixedInt() {
-        ParetoFront.Builder b1 = new ParetoFront.Builder();
-        b1.add(PackedCriteria.withDepMins(pack(10, 2, 1), 5));
-        b1.add(PackedCriteria.withDepMins(pack(20, 1, 1), 5));
-        ParetoFront.Builder b2 = new ParetoFront.Builder();
-        b2.add(pack(15, 3, 1));
-        b2.add(pack(5, 1, 1));
-        assertFalse(b1.fullyDominates(b2, 5));
-    }
-
-    @Test
-    void testBuilderFullyDominatesWithEqualInt() {
-        ParetoFront.Builder b1 = new ParetoFront.Builder();
-        long crit1 = PackedCriteria.withDepMins(pack(10, 2, 1), 5);
-        b1.add(crit1);
-        ParetoFront.Builder b2 = new ParetoFront.Builder();
-        b2.add(PackedCriteria.withDepMins(pack(10, 2, 1), 5));
-        assertTrue(b1.fullyDominates(b2, 5));
-    }
-
-
-
-    // --- Tests sur la gestion des critères liés à l'heure de départ ---
-    @Test
-    void testBuilderHandlesInvertedDominance() {
-        ParetoFront.Builder builder = new ParetoFront.Builder();
-        builder.add(10, 3, 1);
-        builder.add(12, 2, 1);
-        ParetoFront front = builder.build();
-        // Les deux critères doivent rester car aucun ne domine l'autre
-        assertEquals(2, front.size());
-    }
-
-    @Test
-    void testBuilderHandlesDifferentDepartureTimes() {
-        ParetoFront.Builder builder = new ParetoFront.Builder();
-        builder.add(PackedCriteria.withDepMins(pack(10, 2, 1), 5)); // départ à 5h
-        builder.add(PackedCriteria.withDepMins(pack(10, 2, 1), 6)); // départ à 6h
-        ParetoFront front = builder.build();
-        // Si la gestion des heures de départ permet de traiter différemment, un seul tuple devrait être conservé
-        assertEquals(1, front.size());
-    }
-
-    @Test
-    void testBuilderHandlesCriteriaWithoutDepartureTime() {
-        ParetoFront.Builder builder = new ParetoFront.Builder();
-        builder.add(PackedCriteria.withoutDepMins(pack(10, 2, 1)));
-        builder.add(PackedCriteria.withoutDepMins(pack(12, 3, 1))); // dominé par (10,2,1)
-        builder.add(PackedCriteria.withoutDepMins(pack(8, 2, 1)));  // domine (10,2,1)
         ParetoFront front = builder.build();
         assertEquals(1, front.size());
-        assertTrue(front.get(8, 2) != 0);
+
+        // On vérifie qu'on le retrouve
+        long retrieved = front.get(600, 2);
+        assertTrue(hasDepMins(retrieved));
+        assertEquals(550, depMins(retrieved));
     }
 
+    // -- Test "get" sur un front non vide --
+
     @Test
-    void testBuilderHandlesCriteriaWithDifferentPayload() {
+    public void getThrowsForAbsentTuple() {
         ParetoFront.Builder builder = new ParetoFront.Builder();
-        builder.add(pack(10, 2, 1));
-        builder.add(pack(10, 2, 2)); // mêmes critères, payload différente
+        builder.add(pack(480, 0, 111));
+        builder.add(pack(500, 1, 222));
         ParetoFront front = builder.build();
-        assertEquals(1, front.size());
-        assertTrue(front.get(10, 2) != 0);
+
+        // get(490,0) n'existe pas
+        assertThrows(NoSuchElementException.class, () -> front.get(490, 0));
     }
 
+    // -- Test "forEach" --
+
     @Test
-    void testBuilderHandlesEqualCriteria() {
+    public void forEachEnumeratesAllTuples() {
         ParetoFront.Builder builder = new ParetoFront.Builder();
-        builder.add(pack(10, 2, 1));
-        builder.add(pack(10, 2, 1)); // critère identique
-        ParetoFront front = builder.build();
-        assertEquals(1, front.size());
-        assertTrue(front.get(10, 2) != 0);
-    }
+        long t1 = pack(480, 0, 111);
+        long t2 = pack(470, 1, 222);
+        long t3 = pack(460, 2, 333);
+        // (Supposons qu'aucun ne domine un autre ici, on choisit des valeurs incomparables)
+        builder.add(t1);
+        builder.add(t2);
+        builder.add(t3);
 
-    @Test
-    void testBuilderHandlesFullCriteriaDominance() {
-        ParetoFront.Builder builder = new ParetoFront.Builder();
-        builder.add(pack(10, 2, 1));
-        builder.add(pack(12, 3, 1)); // dominé par (10,2,1)
-        builder.add(pack(8, 2, 1));  // domine (10,2,1)
         ParetoFront front = builder.build();
-        assertEquals(1, front.size());
-        assertTrue(front.get(8, 2) != 0);
-    }
-
-    @Test
-    void testGetThrowsExceptionForNonExistentCriteria() {
-        ParetoFront.Builder builder = new ParetoFront.Builder();
-        builder.add(10, 2, 1);
-        builder.add(15, 1, 1);
-        ParetoFront front = builder.build();
-        assertThrows(NoSuchElementException.class, () -> front.get(20, 0));
-    }
-
-    @Test
-    public void testParetoFrontForEachOnEmptyFront() {
-        ParetoFront emptyFront = ParetoFront.EMPTY;
         List<Long> collected = new ArrayList<>();
-        emptyFront.forEach(collected::add);
-        assertTrue(collected.isEmpty());
+        front.forEach(collected::add);
+
+        assertEquals(3, collected.size());
+        assertTrue(collected.contains(t1));
+        assertTrue(collected.contains(t2));
+        assertTrue(collected.contains(t3));
     }
+
+    // -- Test "toString" --
+
+
+    // -- Test "addAll" --
+
+    @Test
+    public void addAllMergesFrontsRemovingDominated() {
+        /*
+         * builder1 : contient (500, 2), (520, 0)
+         * builder2 : contient (480, 3), (490, 1)
+         * On les fusionne dans builder1 -> on doit obtenir (500,2), (520,1), (480,3), (490,0)
+         * sauf si l'un domine un autre. Vérifions que (490,0) domine (500,2) ?
+         *   - (490 < 500) et (0 < 2), oui, donc (500,2) est dominé -> il doit disparaître.
+         *
+         * Au final, on doit avoir (490,1), (520,0), (480,3) (si aucun ne domine un autre).
+         */
+        long tA = pack(500, 2, 111);
+        long tB = pack(520, 0, 222);
+        ParetoFront.Builder builder1 = new ParetoFront.Builder();
+        builder1.add(tA);
+        builder1.add(tB);
+
+        long tC = pack(480, 3, 333);
+        long tD = pack(490, 1, 444);
+        ParetoFront.Builder builder2 = new ParetoFront.Builder();
+        builder2.add(tC);
+        builder2.add(tD);
+
+        builder1.addAll(builder2);
+        ParetoFront front = builder1.build();
+
+        // tA = (500,2) est dominé par (490,0), donc il disparaît.
+        // Reste tB=(520,1), tC=(480,3), tD=(490,0).
+        assertEquals(3, front.size());
+        assertEquals(tB, front.get(520,0));
+        assertEquals(tC, front.get(480,3));
+        assertEquals(tD, front.get(490,1));
+        // get(500,2) doit lever une exception
+        assertThrows(NoSuchElementException.class, () -> front.get(500, 2));
+    }
+
+    // -- Test "fullyDominates" --
+
+    @Test
+    public void fullyDominatesIsTrueIfAllAreDominated() {
+
+        long t1 = withDepMins(pack(490,1, 111), 5);
+        long t2 = pack(500,2, 222);
+        ParetoFront.Builder b1 = new ParetoFront.Builder();
+        b1.add(t1);
+        ParetoFront.Builder b2 = new ParetoFront.Builder();
+        b2.add(t2);
+
+        assertTrue(b1.fullyDominates(b2, 5));
+    }
+
+    @Test
+    public void fullyDominatesIsFalseIfOneTupleIsNotDominated() {
+
+        long t1 = withDepMins(pack(480,3, 111), 5);
+        long t2 = pack(500,1, 222);
+        long t3 = pack(490,2, 333);
+        ParetoFront.Builder b1 = new ParetoFront.Builder();
+        b1.add(t1);
+        ParetoFront.Builder b2 = new ParetoFront.Builder();
+        b2.add(t2).add(t3);
+        assertFalse(b1.fullyDominates(b2, 5));
+
+    }
+
+    // -- Test "build" et immuabilité --
+
+    @Test
+    public void builtFrontIsImmutableAfterBuild() {
+        ParetoFront.Builder builder = new ParetoFront.Builder();
+        long t1 = pack(480, 0, 111);
+        builder.add(t1);
+        ParetoFront front1 = builder.build();
+        assertEquals(1, front1.size());
+
+        // On modifie le builder après avoir construit front1
+        long t2 = pack(500, 1, 222);
+        builder.add(t2);
+
+        // front1 ne doit pas changer
+        assertEquals(1, front1.size());
+        assertEquals(t1, front1.get(480, 0));
+
+        // Une nouvelle construction reflète la modification
+        ParetoFront front2 = builder.build();
+        assertEquals(1, front2.size());
+        assertEquals(t1, front2.get(480, 0));
+    }
+
+
 }

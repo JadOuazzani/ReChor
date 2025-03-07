@@ -118,15 +118,17 @@ public class ParetoFront {
                 }
                 insertionIndex++;
             }
+
             this.size = compact(tableTuples, size, packedTuple);
+
             if (size == tableTuples.length) {
                 int newCapacity = (int) (tableTuples.length * 1.5);
                 if (newCapacity == tableTuples.length) {
-                    newCapacity++; // pour éviter de stagner en cas de taille 0 ou 1
+                    newCapacity++; // pour éviter de stagner en cas de taille 0 ou 1 (cas limite)
                 }
-                long[] newArray = new long[newCapacity];
-                System.arraycopy(tableTuples, 0, newArray, 0, this.size);
-                tableTuples = newArray;
+                long[] arrayResized = new long[newCapacity];
+                System.arraycopy(tableTuples, 0, arrayResized, 0, this.size);
+                tableTuples = arrayResized;
             }
 
             System.arraycopy(tableTuples, insertionIndex, tableTuples, insertionIndex + 1, this.size - insertionIndex);
@@ -154,11 +156,12 @@ public class ParetoFront {
             for (int i = 0; i < that.size; i++) {
                 long tWithDep = withDepMins(that.tableTuples[i], depMins);
                 boolean isDominated = false;
-                for (long tuple : tableTuples) {
-                    if (dominatesOrIsEqual(tuple, tWithDep)) {
+                for (int j = 0; j < this.size; j++) {
+                    if (dominatesOrIsEqual(tableTuples[j], tWithDep)) {
                         isDominated = true;
                         break;
                     }
+
                 }
 
                 if (!isDominated) {
