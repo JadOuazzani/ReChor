@@ -32,8 +32,8 @@ public class ParetoFront {
     }
 
     public void forEach(LongConsumer action) {
-        for (long criteria : tableTuples) {
-            action.accept(criteria);
+        for (int i = 0; i < size(); i++) {
+            action.accept(tableTuples[i]);
         }
     }
 
@@ -119,9 +119,9 @@ public class ParetoFront {
                 insertionIndex++;
             }
 
-            this.size = compact(tableTuples, size, packedTuple);
+            this.size = compact(tableTuples, this.size, packedTuple);
 
-            if (size == tableTuples.length) {
+            if (this.size == tableTuples.length) {
                 int newCapacity = (int) (tableTuples.length * 1.5);
                 if (newCapacity == tableTuples.length) {
                     newCapacity++; // pour éviter de stagner en cas de taille 0 ou 1 (cas limite)
@@ -172,8 +172,8 @@ public class ParetoFront {
         }
 
         public void forEach(LongConsumer action) {
-            for (long criteria : tableTuples) {
-                action.accept(criteria);
+            for (int i = 0; i < size; i++) {
+                action.accept(tableTuples[i]);
             }
         }
 
