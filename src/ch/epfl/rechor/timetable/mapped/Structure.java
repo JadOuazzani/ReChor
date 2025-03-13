@@ -1,5 +1,7 @@
 package ch.epfl.rechor.timetable.mapped;
 
+import ch.epfl.rechor.Preconditions;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -17,7 +19,9 @@ public class Structure {
 
     public record Field(int index, FieldType type) {
         public Field {
-            if (type == null) {throw new NullPointerException();}
+            if (type == null) {
+                throw new NullPointerException();
+            }
         }
 
     }
@@ -29,24 +33,22 @@ public class Structure {
     public Structure(Field... fields) {
 
         for (int i = 0; i < fields.length; i++) {
-            if (fields[i].index() != i) {
-                throw new IllegalArgumentException();
-            }
-
+            Preconditions.checkArgument(fields[i].index() == i);
         }
+
         field = new ArrayList<>();
         this.field.addAll(Arrays.asList(fields));
-        this.fieldOffsets = new int[fields.length];
 
+        this.fieldOffsets = new int[fields.length];
         int currentSize = 0;
-        int i =0;
+        int i = 0;
 
 
         for (Field field : fields) {
             fieldOffsets[i] = currentSize;
             switch (field.type()) {
                 case U8:
-                     currentSize+= 1;
+                    currentSize += 1;
                     break;
                 case U16:
                     currentSize += 2;
@@ -55,8 +57,7 @@ public class Structure {
                     currentSize += 4;
                     break;
             }
-            i+=1;
-
+            i += 1;
         }
 
         totalSize = currentSize;
@@ -67,10 +68,8 @@ public class Structure {
     }
 
     int offset(int fieldIndex, int elementIndex) {
-        return elementIndex*totalSize + fieldOffsets[fieldIndex];
+        return elementIndex * totalsize() + fieldOffsets[fieldIndex];
     }
-
-
 
 
 }

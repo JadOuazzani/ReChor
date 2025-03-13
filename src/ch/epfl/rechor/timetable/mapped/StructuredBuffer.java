@@ -3,25 +3,20 @@ package ch.epfl.rechor.timetable.mapped;
 import ch.epfl.rechor.Preconditions;
 
 import java.nio.ByteBuffer;
-import java.util.List;
-
-
 
 public class StructuredBuffer {
 
     private ByteBuffer buffer;
     private Structure structure;
 
-    StructuredBuffer(Structure structure, ByteBuffer buffer){
-        Preconditions.checkArgument(buffer.remaining() % structure.totalsize() ==0);
-
-        this.structure=structure;
+    StructuredBuffer(Structure structure, ByteBuffer buffer) {
+        Preconditions.checkArgument(buffer.capacity() % structure.totalsize() == 0);
+        this.structure = structure;
         this.buffer = buffer;
-
     }
 
     public int size() {
-        return buffer.remaining()/structure.totalsize();
+        return buffer.capacity() / structure.totalsize();
     }
 
     public int getU8(int fieldIndex, int elementIndex) {
@@ -39,8 +34,6 @@ public class StructuredBuffer {
         return buffer.getInt(offset);
 
     }
-
-
 
 
 }
