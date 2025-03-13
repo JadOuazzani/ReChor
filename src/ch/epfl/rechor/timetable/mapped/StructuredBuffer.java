@@ -20,18 +20,15 @@ public class StructuredBuffer {
     }
 
     public int getU8(int fieldIndex, int elementIndex) {
-        int offset = structure.offset(fieldIndex, elementIndex);
-        return Byte.toUnsignedInt(buffer.get(offset));
+        return Byte.toUnsignedInt(buffer.get(structure.offset(fieldIndex, elementIndex)));
     }
 
     public int getU16(int fieldIndex, int elementIndex) {
-        int offset = structure.offset(fieldIndex, elementIndex);
-        return Short.toUnsignedInt(buffer.getShort(offset));
+        return Short.toUnsignedInt(buffer.getShort(structure.offset(fieldIndex, elementIndex)));
     }
 
     int getS32(int fieldIndex, int elementIndex) {
-        int offset = structure.offset(fieldIndex, elementIndex);
-        return buffer.getInt(offset);
+        return buffer.getInt(structure.offset(fieldIndex, elementIndex));
 
     }
 
