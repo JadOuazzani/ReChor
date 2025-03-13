@@ -13,15 +13,14 @@ public class StructuredBuffer {
     private Structure structure;
 
     StructuredBuffer(Structure structure, ByteBuffer buffer){
-        Preconditions.checkArgument(buffer.remaining() % structure.totalsize() ==0);
-
+        Preconditions.checkArgument(buffer.capacity() % structure.totalsize() ==0);
         this.structure=structure;
         this.buffer = buffer;
 
     }
 
     public int size() {
-        return buffer.remaining()/structure.totalsize();
+        return buffer.capacity()/structure.totalsize();
     }
 
     public int getU8(int fieldIndex, int elementIndex) {
