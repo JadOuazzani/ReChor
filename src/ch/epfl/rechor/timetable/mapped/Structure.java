@@ -6,7 +6,8 @@ import java.util.List;
 
 public class Structure {
     private List<Field> field;
-
+    private int totalSize = 0;
+    private final int[] fieldOffsets;
 
     public enum FieldType {
         U8,
@@ -26,6 +27,7 @@ public class Structure {
     }
 
     public Structure(Field... fields) {
+
         for (int i = 0; i < fields.length; i++) {
             if (fields[i].index() != i) {
                 throw new IllegalArgumentException();
@@ -34,30 +36,42 @@ public class Structure {
         }
         field = new ArrayList<>();
         this.field.addAll(Arrays.asList(fields));
+        this.fieldOffsets = new int[fields.length];
 
-        
-    }
+        int currentSize = 0;
+        int i =0;
 
-    int totalsize() {
 
-        int totalSize = 0;
-
-        for (Field field : field) {
+        for (Field field : fields) {
+            fieldOffsets[i] = currentSize;
             switch (field.type()) {
                 case U8:
-                    totalSize += 1;
+                     currentSize+= 1;
                     break;
                 case U16:
-                    totalSize += 2;
+                    currentSize += 2;
                     break;
                 case S32:
-                    totalSize += 4;
+                    currentSize += 4;
                     break;
             }
+            i+=1;
+
         }
 
+        totalSize = currentSize;
+    }
+
+    public int totalsize() {
         return totalSize;
     }
 
+    int offset(int fieldIndex, int elementIndex) {
+        return elementIndex*totalSize + fieldOffsets[fieldIndex];
     }
+
+
+
+
+}
 
