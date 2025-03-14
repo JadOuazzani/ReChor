@@ -7,7 +7,7 @@ import java.util.List;
 
 import static ch.epfl.rechor.timetable.mapped.Structure.FieldType.U16;
 
-public class BufferedStationAliases implements StationAliases {
+public final class BufferedStationAliases implements StationAliases {
 
     private final int ALIAS_ID = 0;
     private final int STATION_NAME_ID = 1;

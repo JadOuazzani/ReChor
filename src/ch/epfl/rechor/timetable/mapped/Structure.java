@@ -5,6 +5,7 @@ import ch.epfl.rechor.Preconditions;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 public class Structure {
     private List<Field> field;
@@ -19,9 +20,7 @@ public class Structure {
 
     public record Field(int index, FieldType type) {
         public Field {
-            if (type == null) {
-                throw new NullPointerException();
-            }
+            Objects.requireNonNull(type);
         }
 
     }

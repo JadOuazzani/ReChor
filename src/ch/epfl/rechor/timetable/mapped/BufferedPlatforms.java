@@ -7,7 +7,7 @@ import java.util.List;
 
 import static ch.epfl.rechor.timetable.mapped.Structure.FieldType.U16;
 
-public class BufferedPlatforms implements Platforms {
+public final class BufferedPlatforms implements Platforms {
     private final int NAME_ID = 0;
     private final int STATION_ID = 1;
     private List<String> stringTable;
