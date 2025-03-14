@@ -13,7 +13,7 @@ public class BufferedPlatforms implements Platforms {
     private List<String> stringTable;
     private StructuredBuffer structuredBuffer;
 
-    BufferedPlatforms(List<String> stringTable, ByteBuffer buffer) {
+    public BufferedPlatforms(List<String> stringTable, ByteBuffer buffer) {
         this.stringTable = stringTable;
         structuredBuffer = new StructuredBuffer(new Structure(Structure.field(NAME_ID, U16), Structure.field(STATION_ID, U16)), buffer);
 
@@ -32,6 +32,6 @@ public class BufferedPlatforms implements Platforms {
 
     @Override
     public int size() {
-        return this.size();
+        return structuredBuffer.size();
     }
 }

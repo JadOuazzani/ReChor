@@ -9,14 +9,14 @@ public class StructuredBuffer {
     private ByteBuffer buffer;
     private Structure structure;
 
-    StructuredBuffer(Structure structure, ByteBuffer buffer) {
-        Preconditions.checkArgument(buffer.capacity() % structure.totalsize() == 0);
+    public StructuredBuffer(Structure structure, ByteBuffer buffer) {
+        Preconditions.checkArgument(buffer.capacity() % structure.totalSize() == 0);
         this.structure = structure;
         this.buffer = buffer;
     }
 
     public int size() {
-        return buffer.capacity() / structure.totalsize();
+        return buffer.capacity() / structure.totalSize();
     }
 
     public int getU8(int fieldIndex, int elementIndex) {
@@ -27,7 +27,7 @@ public class StructuredBuffer {
         return Short.toUnsignedInt(buffer.getShort(structure.offset(fieldIndex, elementIndex)));
     }
 
-    int getS32(int fieldIndex, int elementIndex) {
+    public int getS32(int fieldIndex, int elementIndex) {
         return buffer.getInt(structure.offset(fieldIndex, elementIndex));
 
     }

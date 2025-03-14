@@ -63,12 +63,12 @@ public class Structure {
         totalSize = currentSize;
     }
 
-    public int totalsize() {
+    public int totalSize() {
         return totalSize;
     }
 
-    int offset(int fieldIndex, int elementIndex) {
-        return elementIndex * totalsize() + fieldOffsets[fieldIndex];
+    public int offset(int fieldIndex, int elementIndex) {
+        return elementIndex * totalSize() + fieldOffsets[fieldIndex];
     }
 
 

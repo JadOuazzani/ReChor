@@ -15,7 +15,7 @@ public final class BufferedStations implements Stations {
     public static final int LAG = 2;
     StructuredBuffer structuredBuffer;
     List<String> stringTable;
-    private int convertisseur = 360/scalb();
+    private static final double CONSTANTE = scalb(360d, -32);
 
     public BufferedStations(List<String> stringTable, ByteBuffer buffer) {
         this.stringTable = stringTable;
@@ -29,16 +29,16 @@ public final class BufferedStations implements Stations {
 
     @Override
     public double longitude(int id) throws IndexOutOfBoundsException {
-        return 0;
+        return structuredBuffer.getS32(LON, id) * CONSTANTE;
     }
 
     @Override
     public double latitude(int id) throws IndexOutOfBoundsException {
-        return 0;
+        return structuredBuffer.getS32(LAG, id) * CONSTANTE;
     }
 
     @Override
     public int size() {
-        return this.size();
+        return structuredBuffer.size();
     }
 }
