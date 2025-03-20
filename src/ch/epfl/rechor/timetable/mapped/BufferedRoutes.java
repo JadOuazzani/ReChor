@@ -13,15 +13,15 @@ public final class BufferedRoutes implements Routes {
 
     private final int NAME_ID = 0;
     private final int KIND = 1;
+
     private List<String> stringTable;
     private StructuredBuffer structuredBuffer;
 
     public BufferedRoutes(List<String> stringTable, ByteBuffer buffer) {
         this.stringTable = stringTable;
-        structuredBuffer = new StructuredBuffer(new Structure(Structure.field(NAME_ID, U16), Structure.field(KIND, U8)), buffer);
-
-
+        this.structuredBuffer = new StructuredBuffer(new Structure(Structure.field(NAME_ID, U16), Structure.field(KIND, U8)), buffer);
     }
+
     @Override
     public Vehicle vehicle(int id) throws IndexOutOfBoundsException {
         Vehicle vehicle = null;

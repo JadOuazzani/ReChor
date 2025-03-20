@@ -12,6 +12,7 @@ public final class BufferedTrips implements Trips {
 
     private final int ROUTE_ID = 0;
     private final int DESTINATION_ID = 1;
+
     private List<String> stringTable;
     private StructuredBuffer structuredBuffer;
 
