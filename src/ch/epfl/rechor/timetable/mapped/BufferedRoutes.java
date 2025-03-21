@@ -24,32 +24,8 @@ public final class BufferedRoutes implements Routes {
 
     @Override
     public Vehicle vehicle(int id) throws IndexOutOfBoundsException {
-        Vehicle vehicle = null;
-        switch (structuredBuffer.getU8(KIND, id)) {
-            case 0:
-                vehicle = Vehicle.TRAM;
-                break;
-            case 1 :
-                vehicle = Vehicle.METRO;
-                break;
-            case 2 :
-                vehicle = Vehicle.TRAIN;
-                break;
-            case 3 :
-                vehicle = Vehicle.BUS;
-                break;
-            case 4 :
-                vehicle = Vehicle.FERRY;
-                break;
-            case 5 :
-                vehicle = Vehicle.AERIAL_LIFT;
-                break;
-            case 6  :
-                vehicle = Vehicle.FUNICULAR;
-                break;
-        }
-
-        return vehicle;
+        int vehicleId = structuredBuffer.getU8(KIND,id);
+        return Vehicle.values()[vehicleId];
     }
 
 
