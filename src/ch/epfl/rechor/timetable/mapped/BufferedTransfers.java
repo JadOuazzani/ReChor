@@ -66,9 +66,6 @@ public final class BufferedTransfers implements Transfers {
 
     @Override
     public int arrivingAt(int stationId) throws IndexOutOfBoundsException {
-        if (stationId < 0 || stationId >= tableTransfers.length) {
-            throw new IndexOutOfBoundsException("Station ID out of bounds");
-        }
         return tableTransfers[stationId];
     }
 
@@ -83,6 +80,7 @@ public final class BufferedTransfers implements Transfers {
                 return minutes(i);
             }
         }
+
         throw new NoSuchElementException();
     }
 
