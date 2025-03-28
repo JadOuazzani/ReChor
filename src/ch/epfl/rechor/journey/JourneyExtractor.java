@@ -20,7 +20,7 @@ public final class JourneyExtractor {
         TimeTable timeTable = profile.timeTable();
 
         Connections connections = timeTable.connectionsFor(profile.date());
-        Trips trips = timeTable.tripsFor(profile.date());
+        Trips trip = timeTable.tripsFor(profile.date());
         Routes routes = timeTable.routes();
         Stations stations = timeTable.stations();
         Transfers transfers = timeTable.transfers();
@@ -72,9 +72,9 @@ public final class JourneyExtractor {
             // Construire l'étape de transport initiale
             List<Journey.Leg.IntermediateStop> intermediateStops = new ArrayList<>();
             int tripId = connections.tripId(firstConnectionId);
-            String routeName = routes.name(trips.routeId(tripId));
-            String destination = trips.destination(tripId);
-            Vehicle vehicle = routes.vehicle(trips.routeId(tripId));
+            String routeName = routes.name(trip.routeId(tripId));
+            String destination = trip.destination(tripId);
+            Vehicle vehicle = routes.vehicle(trip.routeId(tripId));
 
             // Traiter les arrêts intermédiaires
             for (int i = 0; i < stopCount; i++) {
@@ -173,9 +173,9 @@ public final class JourneyExtractor {
                 // Préparer la prochaine étape de transport
                 intermediateStops = new ArrayList<>();
                 tripId = connections.tripId(nextConnectionId);
-                routeName = routes.name(trips.routeId(tripId));
-                destination = trips.destination(tripId);
-                vehicle = routes.vehicle(trips.routeId(tripId));
+                routeName = routes.name(trip.routeId(tripId));
+                destination = trip.destination(tripId);
+                vehicle = routes.vehicle(trip.routeId(tripId));
 
                 // Traiter les arrêts intermédiaires
                 int nextCurrentConnectionId = nextConnectionId;
