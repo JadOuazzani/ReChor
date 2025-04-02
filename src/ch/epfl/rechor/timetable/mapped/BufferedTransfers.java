@@ -70,7 +70,7 @@ public final class BufferedTransfers implements Transfers {
     }
 
     @Override
-    public int minutesBetween(int depStationId, int arrStationId) throws IndexOutOfBoundsException {
+    public int minutesBetween(int depStationId, int arrStationId)  {
         int range = arrivingAt(arrStationId);
         int start = startInclusive(range);
         int end = endExclusive(range);

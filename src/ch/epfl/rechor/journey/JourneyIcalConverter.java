@@ -1,11 +1,6 @@
 package ch.epfl.rechor.journey;
 
 
-/*
- *	Author:      Jad Ouazzani
- *	Date:
- */
-
 import ch.epfl.rechor.FormatterFr;
 import ch.epfl.rechor.IcalBuilder;
 
