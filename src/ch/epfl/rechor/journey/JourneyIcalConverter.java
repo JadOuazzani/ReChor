@@ -14,9 +14,15 @@ import static ch.epfl.rechor.IcalBuilder.Component.VCALENDAR;
 import static ch.epfl.rechor.IcalBuilder.Component.VEVENT;
 import static ch.epfl.rechor.IcalBuilder.Name.*;
 
+/**
+ * Convertit un voyage en un événement
+ */
 
 public final class JourneyIcalConverter {
 
+    /**
+     * Retourne une chaîne de caractères au format iCalendar représentant l'événement qui correspond au voyage donné
+     */
     public static String toIcalendar(Journey journey) {
 
         IcalBuilder event = new IcalBuilder();
@@ -24,10 +30,11 @@ public final class JourneyIcalConverter {
         event.begin(VCALENDAR)
                 .add(VERSION, "2.0")
                 .add(PRODID, "ReCHor")
-                .begin(VEVENT).add(UID, UUID.randomUUID().toString())
-                .add(DTSTAMP, LocalDateTime.now())
-                .add(DTSTART, journey.depTime())
-                .add(DTEND, journey.arrTime())
+                .begin(VEVENT) //composant imbriqué
+                .add(UID, UUID.randomUUID().toString()) //la valeur est un UUID aléatoire
+                .add(DTSTAMP, LocalDateTime.now()) //la valeur est la date/heure au moment de l'appel de la méthode
+                .add(DTSTART, journey.depTime()) //la valeur est la date/heure du début du voyage
+                .add(DTEND, journey.arrTime()) //la valeur est la date/heure de la fin du voyage
                 .add(SUMMARY, journey.depStop().name() + " → " + journey.arrStop().name())
                 .add(DESCRIPTION, valueDescription(journey))
                 .end()
@@ -40,7 +47,7 @@ public final class JourneyIcalConverter {
         StringJoiner stringJoiner = new StringJoiner("\\n");
 
         for (Journey.Leg leg : journey.legs()) {
-            switch (leg) {
+            switch (leg) { //filtrage de motifs (pattern-matching) dans un switch
                 case Journey.Leg.Foot f -> stringJoiner.add(FormatterFr.formatLeg(f));
                 case Journey.Leg.Transport t -> stringJoiner.add(FormatterFr.formatLeg(t));
             }

@@ -26,6 +26,7 @@ public enum Vehicle {
 
     FUNICULAR;
 
+
     /**
      * Liste immuable contenant tous les types de véhicules.
      */
