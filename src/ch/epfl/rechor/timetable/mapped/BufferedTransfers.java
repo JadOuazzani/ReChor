@@ -1,8 +1,10 @@
 package ch.epfl.rechor.timetable.mapped;
 
 import ch.epfl.rechor.timetable.Transfers;
+
 import java.nio.ByteBuffer;
 import java.util.NoSuchElementException;
+
 import static ch.epfl.rechor.PackedRange.*;
 import static ch.epfl.rechor.timetable.mapped.Structure.FieldType.U16;
 import static ch.epfl.rechor.timetable.mapped.Structure.FieldType.U8;
@@ -23,6 +25,9 @@ import static ch.epfl.rechor.timetable.mapped.Structure.FieldType.U8;
  *   <li>Field 2 (TRANSFER_MINUTE, U8): the transfer duration in minutes.</li>
  * </ul>
  * </p>
+ *
+ * @author Riad Elhariry
+ * @author Jad Chahed Ouazzani
  */
 public final class BufferedTransfers implements Transfers {
 
@@ -94,7 +99,7 @@ public final class BufferedTransfers implements Transfers {
      * @throws IndexOutOfBoundsException if {@code id} is invalid
      */
     @Override
-    public int depStationId(int id) throws IndexOutOfBoundsException {
+    public int depStationId(int id) {
         return structuredBuffer.getU16(DEP_STATION_ID, id);
     }
 
@@ -106,7 +111,7 @@ public final class BufferedTransfers implements Transfers {
      * @throws IndexOutOfBoundsException if {@code id} is invalid
      */
     @Override
-    public int minutes(int id) throws IndexOutOfBoundsException {
+    public int minutes(int id){
         return structuredBuffer.getU8(TRANSFER_MINUTE, id);
     }
 
@@ -121,7 +126,7 @@ public final class BufferedTransfers implements Transfers {
      * @throws IndexOutOfBoundsException if {@code stationId} is invalid
      */
     @Override
-    public int arrivingAt(int stationId) throws IndexOutOfBoundsException {
+    public int arrivingAt(int stationId) {
         return tableTransfers[stationId];
     }
 

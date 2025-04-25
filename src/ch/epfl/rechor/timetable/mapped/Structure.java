@@ -1,6 +1,7 @@
 package ch.epfl.rechor.timetable.mapped;
 
 import ch.epfl.rechor.Preconditions;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -12,6 +13,9 @@ import java.util.Objects;
  * A Structure instance defines the layout of flattened data by specifying a set of fields.
  * Each field is defined by an index and a type (one of U8, U16, or S32). The Structure
  * allows computing the offset (in bytes) of a given field within a flattened array of data.
+ *
+ * @author Riad Elhariry
+ * @author Jad Chahed Ouazzani
  */
 public class Structure {
     private List<Field> field;
@@ -71,7 +75,7 @@ public class Structure {
      * </p>
      *
      * @param fields the fields defining the structure
-     * @throws IllegalArgumentException if the fields are not provided in order (i.e., if a field's index is not equal to its position)
+     * @throws IllegalArgumentException if the fields are not provided in order
      */
     public Structure(Field... fields) {
         for (int i = 0; i < fields.length; i++) {

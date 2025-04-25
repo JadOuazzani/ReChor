@@ -4,6 +4,9 @@ import java.time.LocalDate;
 
 /**
  * Represents a public transport timetable.
+ *
+ * @author Riad Elhariry
+ * @author Jad Chahed Ouazzani
  */
 public interface TimeTable {
 

@@ -1,8 +1,10 @@
 package ch.epfl.rechor.timetable.mapped;
 
 import ch.epfl.rechor.timetable.Trips;
+
 import java.nio.ByteBuffer;
 import java.util.List;
+
 import static ch.epfl.rechor.timetable.mapped.Structure.FieldType.U16;
 import static ch.epfl.rechor.timetable.mapped.Structure.FieldType.U8;
 
@@ -14,13 +16,17 @@ import static ch.epfl.rechor.timetable.mapped.Structure.FieldType.U8;
  * string table. The flattened data is structured according to a {@link Structure} instance defined with two fields:
  * <ul>
  *   <li>{@code ROUTE_ID} (of type {@code U16}) representing the index of the route to which the trip belongs,</li>
- *   <li>{@code DESTINATION_ID} (of type {@code U16}) representing the index in the string table for the trip's final destination.</li>
+ *   <li>{@code DESTINATION_ID} (of type {@code U16}) representing the index in the string table for
+ the trip's final destination.</li>
  * </ul>
  * </p>
  * <p>
  * The route ID is retrieved from the structured buffer as an unsigned 16-bit value, and the destination is resolved
  * from the string table using the unsigned 16-bit value.
  * </p>
+ *
+ * @author Riad Elhariry
+ * @author Jad Chahed Ouazzani
  */
 public final class BufferedTrips implements Trips {
 

@@ -5,9 +5,21 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 /**
- * Représente un bâtisseur d'événement au format iCalendar
+ * Represents an iCalendar event builder.
+ * <p>
+ * This class allows you to construct an iCalendar event by adding lines while ensuring that
+ * no line exceeds the 75-character limit imposed by the iCalendar format.
+ * </p>
+ *
+ * <p>
+ * The builder supports adding both string and date/time values, as well as beginning and ending
+ * components (such as VCALENDAR and VEVENT).
+ * </p>
+ *
+ * @author
+ *     Riad Elhariry,
+ *     Jad Chahed Ouazzani
  */
-
 public class IcalBuilder {
 
     private final static int MAX_LENGTH = 75;
@@ -17,31 +29,39 @@ public class IcalBuilder {
     private ArrayList<Component> components = new ArrayList<>();
 
     /**
-     * Représente un composant ou un objet
+     * Represents a component or object in an iCalendar file.
      */
     public enum Component {
-        VCALENDAR, //représente un objet iCalendar
-        VEVENT;// représente un composant événement dans un calendrier
+        VCALENDAR, // represents an iCalendar object
+        VEVENT     // represents an event component within a calendar
     }
 
     /**
-     * Représente un nom d'une ligne
+     * Represents a property name for an iCalendar line.
      */
     public enum Name {
         BEGIN,
         END,
-        PRODID, //identifie le logiciel utilisé pour créer l'objet
-        VERSION, //donne la version de la norme iCalendar à laquelle correspond l'objet
-        UID, //identifie de manière unique l'événement,
-        DTSTAMP, //donne la date et l'heure à laquelle l'événement a été créé ou modifié pour la dernière fois
-        DTSTART, //donne la date et l'heure du début de l'événement,
-        DTEND, //donne la date et l'heure de la fin de l'événement,
-        SUMMARY, //donne une description sommaire de l'événement, qui est généralement toujours visible dans un calendrier électronique,
-        DESCRIPTION; //donne une description détaillée de l'événement, qui n'est généralement visible que pour l'éventuel événement sélectionné dans un calendrier électronique.
+        PRODID,      // identifies the software used to create the object
+        VERSION,     // specifies the iCalendar version of the object
+        UID,         // uniquely identifies the event
+        DTSTAMP,     // indicates the date and time when the event was created or last modified
+        DTSTART,     // indicates the start date and time of the event
+        DTEND,       // indicates the end date and time of the event
+        SUMMARY,     // provides a brief description of the event
+        DESCRIPTION; // provides a detailed description of the event
     }
 
     /**
-     * Ajoute à l'événement en cours de construction une ligne en prenant garde à plier la ligne au besoin afin de respecter la contrainte qu'aucune ligne d'une donnée iCalendar ne devrait dépasser 75 caractères
+     * Adds a line to the event under construction with the given property name and string value.
+     * <p>
+     * If the resulting line exceeds the 75-character limit, the line is folded according to the iCalendar
+     * specification, with subsequent lines starting with a space.
+     * </p>
+     *
+     * @param name  the property name.
+     * @param value the string value.
+     * @return this builder for method chaining.
      */
     public IcalBuilder add(Name name, String value) {
         String line = name + ":" + value;
@@ -59,9 +79,15 @@ public class IcalBuilder {
         return this;
     }
 
-
     /**
-     * Ajoute à l'événement en cours de construction une ligne dont le nom est celui donné et la valeur est la représentation textuelle de la date/heure donnée
+     * Adds a line to the event under construction with the given property name and a date/time value.
+     * <p>
+     * The date/time value is formatted as {@code yyyyMMdd'T'HHmmss}.
+     * </p>
+     *
+     * @param name     the property name.
+     * @param dateTime the date/time value.
+     * @return this builder for method chaining.
      */
     public IcalBuilder add(Name name, LocalDateTime dateTime) {
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss");
@@ -70,7 +96,13 @@ public class IcalBuilder {
     }
 
     /**
-     * Commence un composant en ajoutant une ligne dont le nom est BEGIN et la valeur est le nom du composant donné,
+     * Begins a component by adding a line with the property {@code BEGIN} and the name of the component.
+     * <p>
+     * The component is added to an internal stack so that it can be properly ended later.
+     * </p>
+     *
+     * @param component the component to begin.
+     * @return this builder for method chaining.
      */
     public IcalBuilder begin(Component component) {
         components.add(component);
@@ -79,20 +111,31 @@ public class IcalBuilder {
     }
 
     /**
-     * Termine le dernier composant qui a été commencé précédemment par begin mais pas encore terminé par un appel à end précédent
+     * Ends the most recently begun component that has not yet been ended.
+     * <p>
+     * This method adds a line with the property {@code END} and the name of the component.
+     * </p>
+     *
+     * @return this builder for method chaining.
+     * @throws IllegalArgumentException if there is no component to end.
      */
     public IcalBuilder end() {
         Preconditions.checkArgument(!components.isEmpty());
-        add(Name.END, components.removeLast().name());
+        add(Name.END, components.remove(components.size() - 1).name());
         return this;
     }
 
     /**
-     * Retourne la chaîne de caractères au format iCalendar représentant l'événement en cours de construction
+     * Returns the iCalendar formatted string representing the event under construction.
+     * <p>
+     * This method verifies that all components have been properly ended before returning the result.
+     * </p>
+     *
+     * @return the complete iCalendar formatted string.
+     * @throws IllegalArgumentException if there are unclosed components.
      */
     public String build() {
         Preconditions.checkArgument(components.isEmpty());
         return result.toString();
     }
-
 }

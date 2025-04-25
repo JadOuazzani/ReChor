@@ -2,8 +2,10 @@ package ch.epfl.rechor.timetable.mapped;
 
 import ch.epfl.rechor.journey.Vehicle;
 import ch.epfl.rechor.timetable.Routes;
+
 import java.nio.ByteBuffer;
 import java.util.List;
+
 import static ch.epfl.rechor.timetable.mapped.Structure.FieldType.U16;
 import static ch.epfl.rechor.timetable.mapped.Structure.FieldType.U8;
 
@@ -20,6 +22,9 @@ import static ch.epfl.rechor.timetable.mapped.Structure.FieldType.U8;
  * The vehicle type is determined by mapping the unsigned 8-bit value to a {@link Vehicle} using
  * {@code Vehicle.values()}.
  * </p>
+ *
+ * @author Riad Elhariry
+ * @author Jad Chahed Ouazzani
  */
 public final class BufferedRoutes implements Routes {
 

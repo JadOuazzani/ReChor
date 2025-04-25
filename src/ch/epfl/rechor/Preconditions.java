@@ -1,16 +1,34 @@
 package ch.epfl.rechor;
-/*
- *	Author:      Jad Ouazzani
- *	Date:        18/02
- */
 
+/**
+ * Utility class for checking preconditions.
+ * <p>
+ * This class provides static methods to verify that certain conditions hold true.
+ * If a condition is not met, an appropriate exception is thrown.
+ * This helps to detect errors early in the program.
+ * </p>
+ *
+ * @author Riad Elhariry
+ * @author Jad Chahed Ouazzani
+ */
 public final class Preconditions {
 
-    //rendre impossible la création d'instances de la classe, puisque cela n'a clairement aucun sens
+    /**
+     * Private constructor to prevent instantiation, as this class is not meant to be instantiated.
+     */
     private Preconditions() {
     }
 
-    //qui lève l'exception IllegalArgumentException si son argument est faux, et ne fait rien sinon.
+    /**
+     * Checks that the specified condition is {@code true}.
+     * <p>
+     * If the condition is {@code false}, an {@link IllegalArgumentException} is thrown.
+     * Otherwise, the method does nothing.
+     * </p>
+     *
+     * @param shouldBeTrue the condition to check.
+     * @throws IllegalArgumentException if {@code shouldBeTrue} is {@code false}.
+     */
     public static void checkArgument(boolean shouldBeTrue) {
         if (!shouldBeTrue) {
             throw new IllegalArgumentException();

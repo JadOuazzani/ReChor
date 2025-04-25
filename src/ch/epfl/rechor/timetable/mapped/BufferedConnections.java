@@ -1,8 +1,10 @@
 package ch.epfl.rechor.timetable.mapped;
 
 import ch.epfl.rechor.timetable.Connections;
+
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
+
 import static ch.epfl.rechor.timetable.mapped.Structure.FieldType.*;
 
 /**
@@ -19,10 +21,14 @@ import static ch.epfl.rechor.timetable.mapped.Structure.FieldType.*;
  *   <li>{@code DEP_MINUTES} (U16): the departure time in minutes after midnight,</li>
  *   <li>{@code ARR_STOP_ID} (U16): the arrival stop index,</li>
  *   <li>{@code ARR_MINUTES} (U16): the arrival time in minutes after midnight,</li>
- *   <li>{@code TRIP_POS_ID} (S32): an integer encoding both the trip ID (upper 24 bits) and the position within the trip (lower 8 bits).</li>
+ *   <li>{@code TRIP_POS_ID} (S32): an integer encoding both the trip ID (upper 24 bits) and the position
+ within the trip (lower 8 bits).</li>
  * </ul>
  * The second buffer, interpreted as an {@link IntBuffer}, provides for each connection the index of the next connection.
  * </p>
+ *
+ * @author Riad Elhariry
+ * @author Jad Chahed Ouazzani
  */
 public final class BufferedConnections implements Connections {
 

@@ -6,11 +6,15 @@ package ch.epfl.rechor.timetable;
  * <p>This interface provides the following abstract methods:
  * <ul>
  *   <li>{@code String alias(int id)} – returns the alternative name at the given index (e.g., "Losanna");</li>
- *   <li>{@code String stationName(int id)} – returns the actual station name corresponding to the alternative name at the given index (e.g., "Lausanne").</li>
+ *   <li>{@code String stationName(int id)} – returns the actual station name corresponding to the alternative
+ name at the given index (e.g., "Lausanne").</li>
  * </ul>
  *
  * <p>All these methods throw an {@link IndexOutOfBoundsException} if the provided index is invalid,
  * meaning it is less than 0 or greater than or equal to the value returned by {@link #size()}.
+ *
+ * @author Riad Elhariry
+ * @author Jad Chahed Ouazzani
  */
 public interface StationAliases extends Indexed {
 

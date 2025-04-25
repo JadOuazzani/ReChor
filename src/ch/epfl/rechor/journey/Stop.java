@@ -1,36 +1,33 @@
 package ch.epfl.rechor.journey;
 
 import ch.epfl.rechor.Preconditions;
-
 import java.util.Objects;
-
 import static java.util.Objects.requireNonNull;
 
-
 /**
- * Représente un arrêt avec un nom, une plateforme et des coordonnées géographiques.
+ * Represents a stop with a name, a platform, and geographic coordinates.
  *
- * @param name         Le nom de l'arrêt, ne peut pas être nul.
- * @param platformName Le nom de la plateforme.
- * @param longitude    La longitude de l'arrêt, doit être comprise entre -180 et 180 degrés.
- * @param latitude     La latitude de l'arrêt, doit être comprise entre -90 et 90 degrés.
+ * @param name         the name of the stop, must not be null.
+ * @param platformName the name of the platform.
+ * @param longitude    the longitude of the stop, must be between -180 and 180.
+ * @param latitude     the latitude of the stop, must be between -90 and 90.
  */
+public record Stop(String name, String platformName, double longitude,
+                   double latitude) {
 
-
-public record Stop(String name, String platformName, double longitude, double latitude) {
+    private static final double MAX_LATITUDE = 90.0;
+    private static final double MAX_LONGITUDE = 180.0;
 
     /**
-     * Constructeur validant les contraintes des attributs.
+     * Constructs a {@code Stop} with validated attributes.
      *
-     * @throws NullPointerException     si {@code name} est nul.
-     * @throws IllegalArgumentException si {@code latitude} ou {@code longitude} sont hors des bornes autorisées.
+     * @throws NullPointerException if {@code name} is null.
+     * @throws IllegalArgumentException if {@code latitude} or {@code longitude} are
+     *                                  out of allowed bounds.
      */
     public Stop {
-        Objects.requireNonNull(name);
-        Preconditions.checkArgument(Math.abs(latitude) <= 90);
-        Preconditions.checkArgument(Math.abs(longitude) <= 180);
+        requireNonNull(name);
+        Preconditions.checkArgument(Math.abs(latitude) <= MAX_LATITUDE);
+        Preconditions.checkArgument(Math.abs(longitude) <= MAX_LONGITUDE);
     }
-
-
 }
-

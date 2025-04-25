@@ -29,6 +29,8 @@ import static java.nio.file.Files.readAllLines;
  * @param platforms      the platforms.
  * @param routes         the routes.
  * @param transfers      the transfers.
+ * @author Riad Elhariry
+ * @author Jad Chahed Ouazzani
  */
 public record FileTimeTable(Path directory,
                             List<String> stringTable,
@@ -58,34 +60,36 @@ public record FileTimeTable(Path directory,
      * @throws IOException if an I/O error occurs during file reading.
      */
     public static TimeTable in(Path directory) throws IOException {
-        List<String> stringTable = List.copyOf(Files.readAllLines(directory.resolve("strings.txt"), StandardCharsets.ISO_8859_1));
-        Stations stations;
-        StationAliases stationAliases;
-        Platforms platforms;
-        Routes routes;
-        Transfers transfers;
+        List<String> stringTable = List.copyOf(
+                Files.readAllLines(directory.resolve("strings.txt"), StandardCharsets.ISO_8859_1));
+        Stations stations = new BufferedStations(stringTable, map(directory, "stations.bin"));
+        StationAliases stationAliases = new BufferedStationAliases(
+                stringTable,
+                map(directory, "station-aliases.bin"));
+        Platforms platforms = new BufferedPlatforms(stringTable, map(directory, "platforms.bin"));
+        Routes routes = new BufferedRoutes(stringTable, map(directory, "routes.bin"));
+        Transfers transfers = new BufferedTransfers(map(directory, "transfers.bin"));
 
-        try (FileChannel channel = FileChannel.open(directory.resolve("stations.bin"))) {
-            ByteBuffer stationsBuffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
-            stations = new BufferedStations(stringTable, stationsBuffer);
-        }
-        try (FileChannel channel = FileChannel.open(directory.resolve("station-aliases.bin"))) {
-            ByteBuffer stationsAliasesBuffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
-            stationAliases = new BufferedStationAliases(stringTable, stationsAliasesBuffer);
-        }
-        try (FileChannel channel = FileChannel.open(directory.resolve("platforms.bin"))) {
-            ByteBuffer platformsBuffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
-            platforms = new BufferedPlatforms(stringTable, platformsBuffer);
-        }
-        try (FileChannel channel = FileChannel.open(directory.resolve("routes.bin"))) {
-            ByteBuffer routesBuffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
-            routes = new BufferedRoutes(stringTable, routesBuffer);
-        }
-        try (FileChannel channel = FileChannel.open(directory.resolve("transfers.bin"))) {
-            ByteBuffer transfersBuffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
-            transfers = new BufferedTransfers(transfersBuffer);
-        }
         return new FileTimeTable(directory, stringTable, stations, stationAliases, platforms, routes, transfers);
+    }
+
+    /**
+     * Maps a file located in the specified directory into a read-only {@link ByteBuffer}.
+     * <p>
+     * This auxiliary method opens the file specified by its filename in the given directory,
+     * maps its entire content into memory as a read-only buffer, and returns the resulting {@code ByteBuffer}.
+     * The file channel is automatically closed after mapping.
+     * </p>
+     *
+     * @param directory the directory containing the file.
+     * @param filename  the name of the file to map.
+     * @return a read-only {@link ByteBuffer} representing the content of the file.
+     * @throws IOException if an I/O error occurs while opening or mapping the file.
+     */
+    private static ByteBuffer map(Path directory, String filename) throws IOException {
+        try (FileChannel channel = FileChannel.open(directory.resolve(filename))) {
+            return channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
+        }
     }
 
     /**
@@ -155,8 +159,7 @@ public record FileTimeTable(Path directory,
             Path dailyDirectory = directory.resolve(date.toString());
             FileChannel channel = FileChannel.open(dailyDirectory.resolve("trips.bin"));
             ByteBuffer tripsBuffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
-            Trips trips = new BufferedTrips(stringTable, tripsBuffer);
-            return trips;
+            return new BufferedTrips(stringTable, tripsBuffer);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -181,8 +184,7 @@ public record FileTimeTable(Path directory,
             FileChannel channel2 = FileChannel.open(dailyDirectory.resolve("connections-succ.bin"));
             ByteBuffer connectionsBuffer = channel1.map(FileChannel.MapMode.READ_ONLY, 0, channel1.size());
             ByteBuffer succConnectionsBuffer = channel2.map(FileChannel.MapMode.READ_ONLY, 0, channel2.size());
-            Connections connections = new BufferedConnections(connectionsBuffer, succConnectionsBuffer);
-            return connections;
+            return new BufferedConnections(connectionsBuffer, succConnectionsBuffer);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

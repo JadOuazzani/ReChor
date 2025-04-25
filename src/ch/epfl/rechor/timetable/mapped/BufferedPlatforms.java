@@ -1,8 +1,10 @@
 package ch.epfl.rechor.timetable.mapped;
 
 import ch.epfl.rechor.timetable.Platforms;
+
 import java.nio.ByteBuffer;
 import java.util.List;
+
 import static ch.epfl.rechor.timetable.mapped.Structure.FieldType.U16;
 
 /**
@@ -13,9 +15,13 @@ import static ch.epfl.rechor.timetable.mapped.Structure.FieldType.U16;
  * The flattened data is structured by a {@link Structure} instance that defines two fields:
  * <ul>
  *   <li>{@code NAME_ID} of type {@code U16} representing the platform name, and</li>
- *   <li>{@code STATION_ID} of type {@code U16} representing the index of the station to which the platform belongs.</li>
+ *   <li>{@code STATION_ID} of type {@code U16} representing the index of the station to which the platform
+ belongs.</li>
  * </ul>
  * </p>
+ *
+ * @author Riad Elhariry
+ * @author Jad Chahed Ouazzani
  */
 public final class BufferedPlatforms implements Platforms {
     private final int NAME_ID = 0;
@@ -57,7 +63,7 @@ public final class BufferedPlatforms implements Platforms {
      * @throws IndexOutOfBoundsException if the index is invalid
      */
     @Override
-    public String name(int id) throws IndexOutOfBoundsException {
+    public String name(int id) {
         return stringTable.get(structuredBuffer.getU16(NAME_ID, id));
     }
 
@@ -69,7 +75,7 @@ public final class BufferedPlatforms implements Platforms {
      * @throws IndexOutOfBoundsException if the index is invalid
      */
     @Override
-    public int stationId(int id) throws IndexOutOfBoundsException {
+    public int stationId(int id) {
         return structuredBuffer.getU16(STATION_ID, id);
     }
 

@@ -13,6 +13,9 @@ package ch.epfl.rechor.timetable;
  * <p>All these methods throw an {@link IndexOutOfBoundsException} if the provided index
  * (referred to as {@code id}) is invalid, i.e., if it is less than 0 or greater than or equal to the size
  * returned by {@link #size()}.
+ *
+ * @author Riad Elhariry
+ * @author Jad Chahed Ouazzani
  */
 public interface Stations extends Indexed {
     /**

@@ -1,6 +1,7 @@
 package ch.epfl.rechor.timetable.mapped;
 
 import ch.epfl.rechor.Preconditions;
+
 import java.nio.ByteBuffer;
 
 /**
@@ -15,6 +16,9 @@ import java.nio.ByteBuffer;
  * </pre>
  * In the example from §2.6, {@code stationNameStringIndex} would be 3, since it is the string index for "Ins".
  * </p>
+ *
+ * @author Riad Elhariry
+ * @author Jad Chahed Ouazzani
  */
 public class StructuredBuffer {
 

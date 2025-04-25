@@ -1,8 +1,10 @@
 package ch.epfl.rechor.timetable.mapped;
 
 import ch.epfl.rechor.timetable.Stations;
+
 import java.nio.ByteBuffer;
 import java.util.List;
+
 import static ch.epfl.rechor.timetable.mapped.Structure.FieldType.*;
 import static java.lang.Math.scalb;
 
@@ -19,14 +21,23 @@ import static java.lang.Math.scalb;
  * </ul>
  * The longitude and latitude values are scaled by a constant.
  * </p>
+ *
+ * @author Riad Elhariry
+ * @author Jad Chahed Ouazzani
  */
 public final class BufferedStations implements Stations {
 
-    /** The field index for the station name. */
+    /**
+     * The field index for the station name.
+     */
     public static final int NAME_ID = 0;
-    /** The field index for the station longitude. */
+    /**
+     * The field index for the station longitude.
+     */
     public static final int LON = 1;
-    /** The field index for the station latitude. */
+    /**
+     * The field index for the station latitude.
+     */
     public static final int LAG = 2;
 
     StructuredBuffer structuredBuffer;

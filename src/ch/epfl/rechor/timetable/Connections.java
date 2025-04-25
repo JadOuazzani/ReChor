@@ -7,8 +7,12 @@ package ch.epfl.rechor.timetable;
  * </p>
  *
  * <p>
- * The indices for departure and arrival stops returned by {@code depStopId} and {@code arrStopId} may refer either to stations or to platforms.
+ * The indices for departure and arrival stops returned by {@code depStopId} and {@code arrStopId} may refer either
+ to stations or to platforms.
  * </p>
+ *
+ * @author Riad Elhariry
+ * @author Jad Chahed Ouazzani
  */
 public interface Connections extends Indexed {
 

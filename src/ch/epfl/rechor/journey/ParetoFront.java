@@ -1,9 +1,11 @@
 package ch.epfl.rechor.journey;
 
 import ch.epfl.rechor.FormatterFr;
+
 import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
 import java.util.function.LongConsumer;
+
 import static ch.epfl.rechor.journey.PackedCriteria.*;
 
 /**
@@ -15,6 +17,9 @@ import static ch.epfl.rechor.journey.PackedCriteria.*;
  * <p>
  * The public static final field {@code EMPTY} represents an empty Pareto front.
  * </p>
+ *
+ * @author Riad Elhariry
+ * @author Jad Chahed Ouazzani
  */
 public class ParetoFront {
     private long[] tableTuples;
@@ -97,11 +102,23 @@ public class ParetoFront {
             // If the tuple contains a departure time, display it.
             if (PackedCriteria.hasDepMins(tuple)) {
                 int dep = PackedCriteria.depMins(tuple);
-                LocalDateTime depTime = LocalDateTime.of(2025, 2, 18, 0, 0).plusMinutes(dep);
+                LocalDateTime depTime = LocalDateTime.of(
+                        2025
+                        , 2
+                        , 18
+                        , 0
+                        , 0)
+                        .plusMinutes(dep);
                 sb.append("dep=").append(FormatterFr.formatTime(depTime)).append(", ");
             }
             int arr = PackedCriteria.arrMins(tuple);
-            LocalDateTime arrTime = LocalDateTime.of(2025, 2, 18, 0, 0).plusMinutes(arr);
+            LocalDateTime arrTime = LocalDateTime.of(
+                    2025
+                    , 2
+                    , 18
+                    , 0
+                    , 0)
+                    .plusMinutes(arr);
             int changes = PackedCriteria.changes(tuple);
             sb.append("arr=").append(FormatterFr.formatTime(arrTime));
             sb.append(", chg=").append(changes);
@@ -170,7 +187,7 @@ public class ParetoFront {
          * @param newTuple the new tuple used for comparison
          * @return the new size of the array after compaction
          */
-        int compact(long[] array, int size, long newTuple) {
+        private int compact(long[] array, int size, long newTuple) {
             int dst = 0;
             for (int src = 0; src < size; src += 1) {
                 if (PackedCriteria.dominatesOrIsEqual(newTuple, array[src])) continue;
@@ -220,7 +237,11 @@ public class ParetoFront {
                 tableTuples = arrayResized;
             }
 
-            System.arraycopy(tableTuples, insertionIndex, tableTuples, insertionIndex + 1, this.size - insertionIndex);
+            System.arraycopy(tableTuples
+                    , insertionIndex
+                    , tableTuples
+                    , insertionIndex + 1
+                    , this.size - insertionIndex);
             tableTuples[insertionIndex] = packedTuple;
             size++;
 
@@ -256,8 +277,9 @@ public class ParetoFront {
         }
 
         /**
-         * Returns true if and only if every tuple in the Pareto front of the specified builder, after setting its departure
-         * time to the given value, is dominated by or equal to at least one tuple in this builder's Pareto front.
+         * Returns true if and only if every tuple in the Pareto front of the specified builder, after setting its
+         * departure time to the given value, is dominated by or equal to at least one tuple in this builder's Pareto
+         * front.
          *
          * @param that    the builder whose Pareto front is to be compared
          * @param depMins the departure time (in minutes after midnight) to assign to each tuple from the other builder
@@ -307,7 +329,7 @@ public class ParetoFront {
         }
 
         /**
-         * Returns a string representation of the current state of the builder (i.e., the Pareto front under construction).
+         * Returns a string representation of the current state of the builder
          *
          * @return a string representation of this builder's Pareto front
          */

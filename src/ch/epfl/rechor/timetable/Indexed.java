@@ -5,6 +5,9 @@ package ch.epfl.rechor.timetable;
  *
  * <p>By "indexed data" we mean any timetable data that is conceptually stored in an array
  * and identified by an index ranging from 0 (inclusive) to the size of the array (exclusive).</p>
+ *
+ * @author Riad Elhariry
+ * @author Jad Chahed Ouazzani
  */
 public interface Indexed {
     /**
