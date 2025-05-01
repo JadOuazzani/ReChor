@@ -150,6 +150,7 @@ public final class BufferedTransfers implements Transfers {
         int start = startInclusive(range);
         int end = endExclusive(range);
 
+
         for (int i = start; i < end; i++) {
             if (depStationId(i) == depStationId) {
                 return minutes(i);
