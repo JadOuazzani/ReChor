@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Représente un index de noms d'arrêts permettant d'effectuer des recherches
@@ -13,41 +14,78 @@ import java.util.stream.Collectors;
  */
 public final class StopIndex {
 
-    private record StopInfo(String searchableName, String primaryName) {}
-
+    private static final Map<Character, String> ACCENT_MAP = Map.ofEntries(
+            Map.entry('a', "[aáàâä]"),
+            Map.entry('e', "[eéèêë]"),
+            Map.entry('i', "[iíìîï]"),
+            Map.entry('o', "[oóòôö]"),
+            Map.entry('u', "[uúùûü]"),
+            Map.entry('c', "[cç]"));
     private final List<StopInfo> allSearchableStops;
-
-    // Map pour la conversion des caractères de base (minuscules, non accentués) en classes regex
-    private static final Map<Character, String> ACCENT_MAP = createAccentMap();
 
     /**
      * Construit un nouvel index d'arrêts.
      *
-     * @param stops      La liste des noms d'arrêts principaux.
-     * @param altNames   La table associant des noms alternatifs à leur nom principal.
+     * @param stops    La liste des noms d'arrêts principaux.
+     * @param altNames La table associant des noms alternatifs à leur nom principal.
      * @throws NullPointerException si stops ou altNames est nul.
      */
     public StopIndex(List<String> stops, Map<String, String> altNames) {
+        Stream<StopInfo> mainStops = stops.stream().filter(s -> (s != null && !s.isEmpty())).map(s -> new StopInfo(s, s));
+        Stream<StopInfo> altStops = altNames.entrySet().stream().filter(e -> !(e.getKey() == null && e.getKey().isEmpty()) && !(e.getValue() == null && e.getValue().isEmpty())).map(e -> new StopInfo(e.getKey(), e.getValue()));
+        this.allSearchableStops = Stream.concat(mainStops, altStops).toList();
+    }
 
-        List<StopInfo> searchableList = new ArrayList<>();
+    /**
+     * Compile une sous-requête en Pattern Java, en respectant les règles de sensibilité à la casse et d'équivalence
+     * des accents spécifiées.
+     *
+     * @param subQuery La sous-requête originale.
+     * @return Le Pattern compilé.
+     */
+    private static Pattern compileSubQueryToPattern(String subQuery) {
+        String regex = subQuery.chars().mapToObj(cp -> {
+            char c = (char) cp;
+            return (Character.isLowerCase(c) && ACCENT_MAP.containsKey(c)) ? ACCENT_MAP.get(c) : Pattern.quote(String.valueOf(c));
+        }).collect(Collectors.joining());
 
-        for (String stop : stops) {
-            if (stop != null && !stop.isEmpty()) {
-                // Conserve le nom original pour l'affichage et la recherche exacte
-                searchableList.add(new StopInfo(stop, stop));
+        boolean queryIsLowerCase = subQuery.chars().noneMatch(Character::isUpperCase);
+        int flags = Pattern.UNICODE_CASE;
+        return Pattern.compile(regex, queryIsLowerCase ? flags |= Pattern.CASE_INSENSITIVE : flags);
+    }
+
+    /**
+     * Calcule le score de pertinence d'un nom d'arrêt pour une requête donnée.
+     *
+     * @param stopName   Le nom de l'arrêt (original).
+     * @param patterns   La liste des Patterns compilés correspondant aux subQueries.
+     * @return Le score total de pertinence.
+     */
+    private int calculateScore(String stopName, List<Pattern> patterns) {
+        if (stopName.isEmpty()) return 0;
+        if (patterns.stream().anyMatch(p -> !p.matcher(stopName).find())) return 0;
+
+        return patterns.stream().mapToInt(p -> {
+            Matcher m = p.matcher(stopName);
+            m.find();
+            int start = m.start();
+            int end = m.end();
+            int len = end - start;
+
+            int base = (int) Math.floor(len * 100.0 / stopName.length());
+
+            int mult = 1;
+
+            if ((start == 0 || !Character.isLetter(stopName.charAt(start - 1)))) {
+                mult *= 4;
             }
-        }
 
-        for (Map.Entry<String, String> entry : altNames.entrySet()) {
-            String altName = entry.getKey();
-            String primaryName = entry.getValue();
-            if (altName != null && !altName.isEmpty() && primaryName != null && !primaryName.isEmpty()) {
-                // Conserve le nom alternatif original pour la recherche
-                searchableList.add(new StopInfo(altName, primaryName));
+            if ((end == stopName.length() || !Character.isLetter(stopName.charAt(end)))) {
+                mult *= 2;
             }
-        }
+            return base * mult;
 
-        this.allSearchableStops = List.copyOf(searchableList);
+        }).sum();
     }
 
     /**
@@ -60,138 +98,28 @@ public final class StopIndex {
      */
     public List<String> stopsMatching(String query, int maxResults) {
         if (query == null || query.isBlank() || maxResults <= 0) {
-            return Collections.emptyList();
+            return List.of();
         }
 
-        // 1. Découper la requête originale en sous-requêtes non vides
-        List<String> subQueries = Arrays.stream(query.trim().split("\\s+"))
+        List<Pattern> patterns = Arrays.stream(query.trim().split("\\s+"))
                 .filter(s -> !s.isEmpty())
-                .toList();
-
-        if (subQueries.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        // 2. Compiler les patterns regex pour chaque sous-requête (respectant casse/accents)
-        List<Pattern> patterns = subQueries.stream()
                 .map(StopIndex::compileSubQueryToPattern)
                 .toList();
 
-        // 3. Calculer les scores pour chaque arrêt principal correspondant
-        Map<String, Integer> scores = new HashMap<>();
+        if (patterns.isEmpty())
+            return List.of();
 
-        for (StopInfo stopInfo : allSearchableStops) {
-            boolean matchesAll = true;
-            // Vérifier si le nom cherchable (original) contient TOUTES les sous-requêtes
-            for (Pattern pattern : patterns) {
-                if (!pattern.matcher(stopInfo.searchableName()).find()) {
-                    matchesAll = false;
-                    break;
-                }
-            }
+        Map<String, Integer> scores = allSearchableStops.stream()
+                .filter(s -> patterns.stream().allMatch(p -> p.matcher(s.searchableName).find()))
+                .collect(Collectors.toMap(StopInfo::primaryName, si -> calculateScore(si.searchableName(), patterns), Integer::max));
 
-            if (matchesAll) {
-                // Calculer le score basé sur les noms originaux
-                int score = calculateScore(stopInfo.searchableName(), subQueries, patterns);
-                // Mettre à jour la map des scores, en gardant le score max par nom principal
-                scores.merge(stopInfo.primaryName(), score, Integer::max);
-            }
-        }
 
-        // 4. Trier les résultats par score décroissant et retourner les noms principaux
         return scores.entrySet().stream()
                 .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
                 .map(Map.Entry::getKey)
                 .limit(maxResults)
-                .collect(Collectors.toList());
+                .toList();
     }
 
-    /**
-     * Calcule le score de pertinence d'un nom d'arrêt pour une requête donnée.
-     *
-     * @param stopName   Le nom de l'arrêt (original).
-     * @param subQueries La liste des sous-requêtes (originales).
-     * @param patterns   La liste des Patterns compilés correspondant aux subQueries.
-     * @return Le score total de pertinence.
-     */
-    private int calculateScore(String stopName, List<String> subQueries, List<Pattern> patterns) {
-        int totalScore = 0;
-
-        for (int i = 0; i < subQueries.size(); ++i) {
-            Matcher matcher = patterns.get(i).matcher(stopName);
-
-            // Utilise la PREMIERE occurrence trouvée pour le score
-            if (matcher.find()) {
-                int start = matcher.start();
-                int end = matcher.end();
-                int matchLength = end - start;
-
-                if (stopName.isEmpty()) continue; // Eviter division par zéro
-
-                double baseScorePercent = ((double) matchLength / stopName.length()) * 100.0;
-                int baseScore = (int) Math.floor(baseScorePercent);
-
-                int multiplier = 1;
-                boolean startsWord = (start == 0 || !Character.isLetter(stopName.charAt(start - 1)));
-                if (startsWord) {
-                    multiplier *= 4;
-                }
-
-                boolean endsWord = (end == stopName.length() || !Character.isLetter(stopName.charAt(end)));
-                if (endsWord) {
-                    multiplier *= 2;
-                }
-
-                totalScore += baseScore * multiplier;
-            }
-        }
-        return totalScore;
-    }
-
-    /**
-     * Compile une sous-requête en Pattern Java, en respectant les règles de
-     * sensibilité à la casse et d'équivalence des accents spécifiées.
-     *
-     * @param subQuery La sous-requête originale.
-     * @return Le Pattern compilé.
-     */
-    private static Pattern compileSubQueryToPattern(String subQuery) {
-        boolean queryIsLowercase = subQuery.chars().noneMatch(Character::isUpperCase);
-        StringBuilder regex = new StringBuilder();
-
-        for (char c : subQuery.toCharArray()) {
-            char lowerC = Character.toLowerCase(c);
-            // Si c'est un caractère de base minuscule non accentué listé dans la map
-            if (ACCENT_MAP.containsKey(lowerC) && c == lowerC) {
-                regex.append(ACCENT_MAP.get(lowerC));
-            } else {
-                // Sinon (caractère accentué, majuscule, ou autre), traiter littéralement
-                regex.append(Pattern.quote(String.valueOf(c)));
-            }
-        }
-
-        // Appliquer la sensibilité à la casse seulement si la query est entièrement en minuscules
-        int flags = Pattern.UNICODE_CASE; // Pour gestion correcte des caractères Unicode
-        if (queryIsLowercase) {
-            flags |= Pattern.CASE_INSENSITIVE;
-        }
-
-        return Pattern.compile(regex.toString(), flags);
-    }
-
-    /**
-     * Crée la map associant les caractères de base (minuscules, non accentués)
-     * à leur classe regex d'équivalents accentués.
-     * @return La map des équivalences.
-     */
-    private static Map<Character, String> createAccentMap() {
-        Map<Character, String> map = new HashMap<>();
-        map.put('a', "[aáàâä]");
-        map.put('e', "[eéèêë]");
-        map.put('i', "[iíìîï]");
-        map.put('o', "[oóòôö]");
-        map.put('u', "[uúùûü]");
-        map.put('c', "[cç]");
-        return Collections.unmodifiableMap(map);
-    }
+    private record StopInfo(String searchableName, String primaryName) {}
 }
