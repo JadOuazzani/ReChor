@@ -1,7 +1,6 @@
 package ch.epfl.rechor.timetable;
 
 import java.time.LocalDate;
-import java.util.Objects;
 
 public class CachedTimeTable implements TimeTable {
     private TimeTable underlyingTime;
