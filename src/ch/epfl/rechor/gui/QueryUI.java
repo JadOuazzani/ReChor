@@ -21,7 +21,7 @@ public record QueryUI(Node rootNode, ObservableValue<String> depStopO, Observabl
         Label depStopLabel = new Label("Départ\u202f:");
         Label arrStopLabel = new Label("Arrivée\u202f:");
         Label dateLabel = new Label("Date\u202f:");
-        Label timeLabel = new Label("Temps\u202f:");
+        Label timeLabel = new Label("Heure\u202f:");
         StopField depStopField = StopField.create(stopIndex);
         StopField arrStopField = StopField.create(stopIndex);
         DatePicker datePicker = new DatePicker(LocalDate.now());
@@ -46,7 +46,7 @@ public record QueryUI(Node rootNode, ObservableValue<String> depStopO, Observabl
         });
 
         // Création des conteneurs
-        HBox text = new HBox(10, depStopLabel, depStopField.textField(), exchange, arrStopField.textField(), arrStopLabel);
+        HBox text = new HBox(10, depStopLabel, depStopField.textField(), exchange, arrStopLabel, arrStopField.textField());
         HBox date = new HBox(10, dateLabel, datePicker, timeLabel, timeField);
 
         // Création du conteneur principal
