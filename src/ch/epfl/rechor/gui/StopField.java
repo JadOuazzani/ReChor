@@ -12,8 +12,7 @@ import javafx.stage.Popup;
 
 import java.util.List;
 
-import static javafx.scene.input.KeyCode.DOWN;
-import static javafx.scene.input.KeyCode.UP;
+import static javafx.scene.input.KeyCode.*;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 
 public record StopField(TextField textField, ObservableValue<String> stopO) {
@@ -29,12 +28,15 @@ public record StopField(TextField textField, ObservableValue<String> stopO) {
         listView.setMaxHeight(240);
 
         window.getContent().add(listView);
+        listView.getItems().setAll(stopIndex.stopsMatching("", 30));
 
         ChangeListener<String> textListener = (observable1, oldValue1, newValue1) -> {
-            List<String> matches = stopIndex.stopsMatching(newValue1, 10);
+            List<String> matches = stopIndex.stopsMatching(newValue1, 30);
             listView.getItems().setAll(matches);
             if (!matches.isEmpty()) {
                 listView.getSelectionModel().select(0);
+                listView.scrollTo(0);
+
             }
         };
 
@@ -49,14 +51,26 @@ public record StopField(TextField textField, ObservableValue<String> stopO) {
                 int selected = listView.getSelectionModel().getSelectedIndex();
                 if (selected > 0) {
                     listView.getSelectionModel().select(selected - 1);
+                    listView.scrollTo(selected - 1);
                     event.consume();
                 }
             } else if (DOWN == event.getCode()) {
                 int selected = listView.getSelectionModel().getSelectedIndex();
                 if (selected < listView.getItems().size() - 1) {
                     listView.getSelectionModel().select(selected + 1);
+                    listView.scrollTo(selected + 1);
                     event.consume();
                 }
+            }
+            else if (event.getCode() == ENTER) {
+                int selectedIndex = listView.getSelectionModel().getSelectedIndex();
+                    String selectedStop = listView.getItems().get(selectedIndex);
+                    textField.setText(selectedStop);
+                    stopProperty.setValue(selectedStop);
+                    window.hide();
+                    textField.getParent().requestFocus();
+                    event.consume();
+
             }
         });
 

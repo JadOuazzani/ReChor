@@ -27,6 +27,8 @@ public record QueryUI(Node rootNode, ObservableValue<String> depStopO, Observabl
         DatePicker datePicker = new DatePicker(LocalDate.now());
         TextField timeField = new TextField();
         timeField.setPromptText("HH:MM");
+        depStopField.textField().setPromptText("Nom de l'arrêt de départ");
+        arrStopField.textField().setPromptText("Nom de l'arrêt d'arrivée");
 
         DateTimeFormatter displayFormatter = DateTimeFormatter.ofPattern("HH:mm");
         DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("H:mm");
