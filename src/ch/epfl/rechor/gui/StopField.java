@@ -2,6 +2,7 @@ package ch.epfl.rechor.gui;
 
 import ch.epfl.rechor.StopIndex;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
@@ -19,7 +20,7 @@ import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 public record StopField(TextField textField, ObservableValue<String> stopO) {
     public static StopField create(StopIndex stopIndex) {
         TextField textField = new TextField();
-        StringProperty stopProperty = new SimpleStringProperty("");
+        SimpleObjectProperty<String> stopProperty = new SimpleObjectProperty<>("");
 
         Popup window = new Popup();
         window.setHideOnEscape(false);

@@ -99,7 +99,7 @@ public final class StopIndex {
      * triée par pertinence décroissante, sans doublons, et limitée à maxResults.
      */
     public List<String> stopsMatching(String query, int maxResults) {
-        String trimmed = query == null ? "" : query.trim();
+        String trimmed = query == null ? "" : query;
         List<Pattern> patterns = Arrays.stream(trimmed.split("\\s+")).filter(s -> !s.isEmpty()).map(StopIndex::compileSubQueryToPattern).toList();
         Map<String, Integer> scores = allSearchableStops.stream()
                 .filter(s -> patterns.stream().allMatch(p -> p.matcher(s.searchableName).find()))

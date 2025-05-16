@@ -27,6 +27,7 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static javafx.scene.paint.Color.RED;
 
@@ -105,6 +106,7 @@ public record DetailUI(Node rootNode) {
             }
 
         });
+
 
         observableJourney.subscribe(journey -> {
             boolean hasNewJourney = journey != null;
