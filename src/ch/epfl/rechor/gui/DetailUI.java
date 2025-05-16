@@ -107,7 +107,6 @@ public record DetailUI(Node rootNode) {
         });
 
         observableJourney.subscribe(journey -> {
-            System.out.println("test");
             boolean hasNewJourney = journey != null;
             toggleVisibility(noJourneyBox, hasNewJourney, journeyBox);
 
@@ -115,15 +114,14 @@ public record DetailUI(Node rootNode) {
                 gridPane.getChildren().clear();
                 annotationPane.getChildren().clear();
                 buildJourneyUI(observableJourney, gridPane);
-
             }
         });
-
 
         return new DetailUI(scrollPane);
     }
 
     private static void buildJourneyUI(ObservableValue<Journey> observableJourney, GridPane gridPane) {
+        ((LegsGrid) gridPane).clearAnnotations();
         int row = 0;
         for (Journey.Leg leg : observableJourney.getValue().legs()) {
             if (leg instanceof Journey.Leg.Foot) {
@@ -237,6 +235,12 @@ public record DetailUI(Node rootNode) {
             // on met à jour le Pane d'annotations en une seule fois
             annotationPane.getChildren().setAll(lines);
         }
+
+        void clearAnnotations() {
+            links.clear();
+            annotationPane.getChildren().clear();
+        }
+
     }
 
 }
