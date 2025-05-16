@@ -41,22 +41,24 @@ public record DetailUI(Node rootNode) {
         scrollPane.setContent(stackPane);
 
         //Aucun voyage
-        VBox vBox = new VBox();
-        stackPane.getChildren().add(vBox);
-        vBox.setId("no-journey");
-        vBox.getChildren().add(new Text("Aucun voyage"));
-        vBox.setVisible(false);
+        VBox noJourneyBox = new VBox();
+        stackPane.getChildren().add(noJourneyBox);
+        noJourneyBox.setId("no-journey");
+        noJourneyBox.getChildren().add(new Text("Aucun voyage"));
 
-        VBox vBox1 = new VBox();
-        stackPane.getChildren().add(vBox1);
+        VBox journeyBox = new VBox();
+        stackPane.getChildren().add(journeyBox);
 
         StackPane stackPane1 = new StackPane();
-        vBox1.getChildren().add(stackPane1);
+        journeyBox.getChildren().add(stackPane1);
 
         //Annotations
         Pane annotationPane = new Pane();
         annotationPane.setId("annotations");
         annotationPane.setMouseTransparent(true);
+
+        boolean hasJourney = observableJourney.getValue() != null && !observableJourney.getValue().legs().isEmpty();
+        toggleVisibility(noJourneyBox, hasJourney, journeyBox);
 
 
         //Etapes
@@ -65,6 +67,63 @@ public record DetailUI(Node rootNode) {
 
         stackPane1.getChildren().add(new StackPane(gridPane, annotationPane));
 
+
+        HBox hBox = new HBox();
+        hBox.setId("buttons");
+        journeyBox.getChildren().add(hBox);
+
+        //Carte
+        Button carteButton = new Button();
+        carteButton.setText("Carte");
+        hBox.getChildren().add(carteButton);
+        carteButton.setOnAction(event -> {
+            try {
+                URI uri = new URI("https", "umap.osm.ch", "/fr/map", "data=" + JourneyGeoJsonConverter.toGeoJson(observableJourney.getValue()), null);
+                Desktop.getDesktop().browse(uri);
+            } catch (IOException | URISyntaxException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        //calendrier
+        Button buttonCalendar = new Button();
+        buttonCalendar.setText("Calendrier");
+        hBox.getChildren().add(buttonCalendar);
+        buttonCalendar.setOnAction(event -> {
+            FileChooser fileChooser = new FileChooser();
+            String dateStr = observableJourney.getValue().depTime().toLocalDate().toString();
+
+            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("fichier icalendar", "*.ics"));
+            fileChooser.setInitialFileName("journey_" + dateStr + ".ics");
+            File file = fileChooser.showSaveDialog(buttonCalendar.getScene().getWindow());
+            if (file != null) {
+                try {
+                    Files.writeString(file.toPath(), JourneyIcalConverter.toIcalendar(observableJourney.getValue()));
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+        });
+
+        observableJourney.subscribe(journey -> {
+            System.out.println("test");
+            boolean hasNewJourney = journey != null;
+            toggleVisibility(noJourneyBox, hasNewJourney, journeyBox);
+
+            if (hasNewJourney) {
+                gridPane.getChildren().clear();
+                annotationPane.getChildren().clear();
+                buildJourneyUI(observableJourney, gridPane);
+
+            }
+        });
+
+
+        return new DetailUI(scrollPane);
+    }
+
+    private static void buildJourneyUI(ObservableValue<Journey> observableJourney, GridPane gridPane) {
         int row = 0;
         for (Journey.Leg leg : observableJourney.getValue().legs()) {
             if (leg instanceof Journey.Leg.Foot) {
@@ -136,46 +195,13 @@ public record DetailUI(Node rootNode) {
             }
 
         }
+    }
 
-        HBox hBox = new HBox();
-        hBox.setId("buttons");
-        vBox1.getChildren().add(hBox);
-
-        //Carte
-        Button carteButton = new Button();
-        carteButton.setText("Carte");
-        hBox.getChildren().add(carteButton);
-        carteButton.setOnAction(event -> {
-            try {
-                URI uri = new URI("https", "umap.osm.ch", "/fr/map", "data=" + JourneyGeoJsonConverter.toGeoJson(observableJourney.getValue()), null);
-                Desktop.getDesktop().browse(uri);
-            } catch (IOException | URISyntaxException e) {
-                throw new RuntimeException(e);
-            }
-        });
-
-        //calendrier
-        Button buttonCalendar = new Button();
-        buttonCalendar.setText("Calendrier");
-        hBox.getChildren().add(buttonCalendar);
-        buttonCalendar.setOnAction(event -> {
-            FileChooser fileChooser = new FileChooser();
-            String dateStr = observableJourney.getValue().depTime().toLocalDate().toString();
-
-            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("fichier icalendar", "*.ics"));
-            fileChooser.setInitialFileName("journey_" + dateStr + ".ics");
-            File file = fileChooser.showSaveDialog(buttonCalendar.getScene().getWindow());
-            if (file != null) {
-                try {
-                    Files.writeString(file.toPath(), JourneyIcalConverter.toIcalendar(observableJourney.getValue()));
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-
-        });
-
-        return new DetailUI(scrollPane);
+    private static void toggleVisibility(VBox noJourneyBox, boolean hasJourney, VBox journeyVBox) {
+        noJourneyBox.setVisible(!hasJourney);
+        noJourneyBox.setManaged(!hasJourney);
+        journeyVBox.setVisible(hasJourney);
+        journeyVBox.setManaged(hasJourney);
     }
 
     private static final class LegsGrid extends GridPane {
@@ -212,6 +238,7 @@ public record DetailUI(Node rootNode) {
             annotationPane.getChildren().setAll(lines);
         }
     }
+
 }
 
 

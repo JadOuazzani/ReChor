@@ -9,6 +9,7 @@ import ch.epfl.rechor.timetable.mapped.FileTimeTable;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Scene;
 import javafx.scene.control.SplitPane;
@@ -69,6 +70,7 @@ public class Main extends Application {
 
         SummaryUI summaryUI = SummaryUI.create(journeysO, queryUI.timeO());
         DetailUI detailUI = DetailUI.create(summaryUI.selectedJourneyO());
+
 
         SplitPane splitPane = new SplitPane(summaryUI.rootNode(), detailUI.rootNode());
         BorderPane root = new BorderPane();
