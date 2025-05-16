@@ -9,7 +9,6 @@ import ch.epfl.rechor.timetable.mapped.FileTimeTable;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.ObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Scene;
 import javafx.scene.control.SplitPane;
@@ -26,6 +25,8 @@ import java.util.Map;
 import static ch.epfl.rechor.journey.JourneyExtractor.journeys;
 
 public class Main extends Application {
+
+    private ObservableValue<List<Journey>> journeysO;
 
     public static void main(String[] args) {
         launch(args);
@@ -52,7 +53,7 @@ public class Main extends Application {
 
         QueryUI queryUI = QueryUI.create(stopIndex);
 
-        ObservableValue<List<Journey>> journeysO = Bindings.createObjectBinding(() -> {
+        journeysO = Bindings.createObjectBinding(() -> {
             String depStop = queryUI.depStopO().getValue();
             String arrStop = queryUI.arrStopO().getValue();
             LocalDate date = queryUI.dateO().getValue();
