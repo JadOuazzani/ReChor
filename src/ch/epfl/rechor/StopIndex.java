@@ -22,6 +22,7 @@ public final class StopIndex {
             Map.entry('u', "[uúùûü]"),
             Map.entry('c', "[cç]"));
     private final List<StopInfo> allSearchableStops;
+    private final List<String> sortedMainStops;
 
     /**
      * Construit un nouvel index d'arrêts.
@@ -34,6 +35,7 @@ public final class StopIndex {
         Stream<StopInfo> mainStops = stops.stream().filter(s -> (s != null && !s.isEmpty())).map(s -> new StopInfo(s, s));
         Stream<StopInfo> altStops = altNames.entrySet().stream().filter(e -> !(e.getKey() == null && e.getKey().isEmpty()) && !(e.getValue() == null && e.getValue().isEmpty())).map(e -> new StopInfo(e.getKey(), e.getValue()));
         this.allSearchableStops = Stream.concat(mainStops, altStops).toList();
+        this.sortedMainStops = new ArrayList<>(new TreeSet<>(stops));
     }
 
     /**
@@ -97,25 +99,14 @@ public final class StopIndex {
      * triée par pertinence décroissante, sans doublons, et limitée à maxResults.
      */
     public List<String> stopsMatching(String query, int maxResults) {
-        if (query == null || query.isBlank() || maxResults <= 0) {
-            return List.of();
-        }
-
-        List<Pattern> patterns = Arrays.stream(query.trim().split("\\s+"))
-                .filter(s -> !s.isEmpty())
-                .map(StopIndex::compileSubQueryToPattern)
-                .toList();
-
-        if (patterns.isEmpty())
-            return List.of();
-
+        String trimmed = query == null ? "" : query.trim();
+        List<Pattern> patterns = Arrays.stream(trimmed.split("\\s+")).filter(s -> !s.isEmpty()).map(StopIndex::compileSubQueryToPattern).toList();
         Map<String, Integer> scores = allSearchableStops.stream()
                 .filter(s -> patterns.stream().allMatch(p -> p.matcher(s.searchableName).find()))
                 .collect(Collectors.toMap(StopInfo::primaryName, si -> calculateScore(si.searchableName(), patterns), Integer::max));
-
-
         return scores.entrySet().stream()
-                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed()
+                        .thenComparing(Map.Entry::getKey))
                 .map(Map.Entry::getKey)
                 .limit(maxResults)
                 .toList();
