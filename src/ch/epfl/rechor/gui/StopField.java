@@ -1,6 +1,7 @@
 package ch.epfl.rechor.gui;
 
 import ch.epfl.rechor.StopIndex;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
@@ -101,5 +102,8 @@ public record StopField(TextField textField, ObservableValue<String> stopO) {
 
     public void setTo(String stopName) {
         textField.setText(stopName);
+        if (stopO instanceof ObjectProperty<String> sO){
+            sO.set(stopName);
+        }
     }
 }
