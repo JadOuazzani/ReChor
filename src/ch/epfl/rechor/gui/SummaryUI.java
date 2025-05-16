@@ -29,16 +29,14 @@ public record SummaryUI(Node rootNode, ObservableValue<Journey> selectedJourneyO
 
         ObservableList<Journey> items = FXCollections.observableArrayList();
         journeyListView.setItems(items);
-        items.setAll(journeyO.getValue());
+
 
         journeyO.subscribe(list -> {
-            items.setAll(list);
+            items.setAll(list == null ? List.of() : list);
             updateSelection(journeyListView, list, timeO.getValue());
         });
 
-        timeO.subscribe(t -> {
-            updateSelection(journeyListView, journeyO.getValue(), t);
-        });
+        timeO.subscribe(t -> updateSelection(journeyListView, journeyO.getValue(), t));
 
         journeyListView.setCellFactory(lv -> new cellJourney());
         ObservableValue<Journey> selected = journeyListView.getSelectionModel().selectedItemProperty();

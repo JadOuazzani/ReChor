@@ -4,7 +4,6 @@ import ch.epfl.rechor.StopIndex;
 import ch.epfl.rechor.journey.Journey;
 import ch.epfl.rechor.journey.Profile;
 import ch.epfl.rechor.journey.Router;
-import ch.epfl.rechor.timetable.Stations;
 import ch.epfl.rechor.timetable.TimeTable;
 import ch.epfl.rechor.timetable.mapped.FileTimeTable;
 import javafx.application.Application;
@@ -12,12 +11,12 @@ import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Scene;
+import javafx.scene.control.SplitPane;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
 import java.nio.file.Path;
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,7 +30,6 @@ public class Main extends Application {
         launch(args);
     }
 
-    
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -57,11 +55,12 @@ public class Main extends Application {
             String depStop = queryUI.depStopO().getValue();
             String arrStop = queryUI.arrStopO().getValue();
             LocalDate date = queryUI.dateO().getValue();
+            if (date == null) return null;
+            if (arrStop.isBlank() || depStop.isBlank()) return null;
 
 
             int depStationId = timeTable.stationId(stops.indexOf(depStop));
             int arrStationId = timeTable.stationId(stops.indexOf(arrStop));
-
 
             Router router = new Router(timeTable);
             Profile profile = router.profile(date, arrStationId);
@@ -71,13 +70,12 @@ public class Main extends Application {
         SummaryUI summaryUI = SummaryUI.create(journeysO, queryUI.timeO());
         DetailUI detailUI = DetailUI.create(summaryUI.selectedJourneyO());
 
+        SplitPane splitPane = new SplitPane(summaryUI.rootNode(), detailUI.rootNode());
         BorderPane root = new BorderPane();
         root.setTop(queryUI.rootNode());
-        root.setCenter(summaryUI.rootNode());
-        root.setRight(detailUI.rootNode());
+        root.setCenter(splitPane);
 
         Scene scene = new Scene(root);
-        scene.getStylesheets().add("query.css");
         primaryStage.setScene(scene);
 
         primaryStage.setTitle("ReCHor");
@@ -85,7 +83,6 @@ public class Main extends Application {
         primaryStage.setMinHeight(600);
         primaryStage.show();
 
-        Platform.runLater(() ->
-            scene.lookup("#depStop").requestFocus());
+        Platform.runLater(() -> scene.lookup("#depStop").requestFocus());
     }
 }
