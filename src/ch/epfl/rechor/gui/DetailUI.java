@@ -246,5 +246,3 @@ public record DetailUI(Node rootNode) {
     }
 
 }
-
-

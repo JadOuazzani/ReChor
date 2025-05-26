@@ -38,7 +38,6 @@ public record StopField(TextField textField, ObservableValue<String> stopO) {
             if (!matches.isEmpty()) {
                 listView.getSelectionModel().select(0);
                 listView.scrollTo(0);
-
             }
         };
 

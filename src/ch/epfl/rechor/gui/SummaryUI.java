@@ -20,6 +20,7 @@ import javafx.scene.text.Text;
 import java.time.Duration;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public record SummaryUI(Node rootNode, ObservableValue<Journey> selectedJourneyO) {
 
@@ -32,11 +33,41 @@ public record SummaryUI(Node rootNode, ObservableValue<Journey> selectedJourneyO
 
 
         journeyO.subscribe(list -> {
-            items.setAll(list == null ? List.of() : list);
-            updateSelection(journeyListView, list, timeO.getValue());
+            if (list == null || list.isEmpty()) {
+                items.setAll(List.of());
+                return;
+            }
+            LocalTime currentTime = timeO.getValue();
+            if (currentTime == null) {
+                items.setAll(list);
+                return;
+            }
+
+            // Filtrer tous les voyages disponibles après l'heure actuelle
+            List<Journey> availableJourneys = list.stream()
+                .filter(journey -> !journey.depTime().toLocalTime().isBefore(currentTime))
+                .collect(Collectors.toList());
+
+            // Si aucun voyage n'est disponible après l'heure actuelle, afficher uniquement le dernier voyage
+            if (availableJourneys.isEmpty()) {
+                items.setAll(List.of(list.get(list.size() - 1)));
+            } else {
+                items.setAll(availableJourneys);
+            }
         });
 
-        timeO.subscribe(t -> updateSelection(journeyListView, journeyO.getValue(), t));
+        timeO.subscribe(t -> {
+            List<Journey> currentList = journeyO.getValue();
+            if (currentList == null || currentList.isEmpty() || t == null) return;
+
+            // Trouver le dernier voyage disponible pour aujourd'hui
+            Journey lastJourney = currentList.stream()
+                .filter(journey -> !journey.depTime().toLocalTime().isBefore(t))
+                .reduce((first, second) -> second)
+                .orElse(currentList.get(currentList.size() - 1));
+
+            items.setAll(List.of(lastJourney));
+        });
 
         journeyListView.setCellFactory(lv -> new cellJourney());
         ObservableValue<Journey> selected = journeyListView.getSelectionModel().selectedItemProperty();

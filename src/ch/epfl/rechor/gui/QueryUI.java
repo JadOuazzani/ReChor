@@ -41,8 +41,16 @@ public record QueryUI(Node rootNode, ObservableValue<String> depStopO, Observabl
 
         exchange.setOnAction(e -> {
             String temp = depStopField.textField().getText();
-            depStopField.setTo(arrStopField.textField().getText());
-            arrStopField.setTo(temp);
+            String tempArr = arrStopField.textField().getText();
+            
+            // Forcer la mise à jour des suggestions en simulant un focus/blur
+            depStopField.textField().requestFocus();
+            depStopField.textField().setText(tempArr);
+            depStopField.textField().getParent().requestFocus();
+            
+            arrStopField.textField().requestFocus();
+            arrStopField.textField().setText(temp);
+            arrStopField.textField().getParent().requestFocus();
         });
 
         // Création des conteneurs
