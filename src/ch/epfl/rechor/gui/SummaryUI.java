@@ -31,62 +31,49 @@ public record SummaryUI(Node rootNode, ObservableValue<Journey> selectedJourneyO
         ObservableList<Journey> items = FXCollections.observableArrayList();
         journeyListView.setItems(items);
 
-
+        // Whenever the underlying list of journeys changes, reset the items
+        // and re-apply the selection logic.
         journeyO.subscribe(list -> {
-            if (list == null || list.isEmpty()) {
-                items.setAll(List.of());
-                return;
-            }
-            LocalTime currentTime = timeO.getValue();
-            if (currentTime == null) {
-                items.setAll(list);
-                return;
-            }
-
-            // Filtrer tous les voyages disponibles après l'heure actuelle
-            List<Journey> availableJourneys = list.stream()
-                .filter(journey -> !journey.depTime().toLocalTime().isBefore(currentTime))
-                .collect(Collectors.toList());
-
-            // Si aucun voyage n'est disponible après l'heure actuelle, afficher uniquement le dernier voyage
-            if (availableJourneys.isEmpty()) {
-                items.setAll(List.of(list.get(list.size() - 1)));
+            if (list == null) {
+                items.clear();
             } else {
-                items.setAll(availableJourneys);
+                items.setAll(list);
+                updateSelection(journeyListView, list, timeO.getValue());
             }
         });
 
-        timeO.subscribe(t -> {
+        // Whenever the desired time changes, re-apply the selection logic
+        // on the already‐populated 'items' list.
+        timeO.subscribe(targetTime -> {
             List<Journey> currentList = journeyO.getValue();
-            if (currentList == null || currentList.isEmpty() || t == null) return;
-
-            // Trouver le dernier voyage disponible pour aujourd'hui
-            Journey lastJourney = currentList.stream()
-                .filter(journey -> !journey.depTime().toLocalTime().isBefore(t))
-                .reduce((first, second) -> second)
-                .orElse(currentList.get(currentList.size() - 1));
-
-            items.setAll(List.of(lastJourney));
+            if (currentList != null && !currentList.isEmpty()) {
+                updateSelection(journeyListView, currentList, targetTime);
+            }
         });
 
+        // cell factory and selection property remain unchanged
         journeyListView.setCellFactory(lv -> new cellJourney());
         ObservableValue<Journey> selected = journeyListView.getSelectionModel().selectedItemProperty();
-
         return new SummaryUI(journeyListView, selected);
     }
 
-    private static void updateSelection(ListView<Journey> view, List<Journey> list, LocalTime targetTime) {
-        if (list == null || list.isEmpty() || targetTime == null) {
+    private static void updateSelection(ListView<Journey> view,
+                                        List<Journey> list,
+                                        LocalTime targetTime) {
+        if (list.isEmpty() || targetTime == null) {
+            // nothing to select
             return;
         }
         int idx = 0;
-        while (idx < list.size() && list.get(idx).depTime().toLocalTime().isBefore(targetTime)) {
+        while (idx < list.size() &&
+                list.get(idx).depTime().toLocalTime().isBefore(targetTime)) {
             idx++;
         }
-        if (idx == list.size()) {
+        if (idx >= list.size()) {
             idx = list.size() - 1;
         }
         view.getSelectionModel().select(idx);
+        view.scrollTo(idx);
     }
 
     private final static class cellJourney extends ListCell<Journey> {

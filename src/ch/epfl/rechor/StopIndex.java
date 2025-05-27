@@ -7,13 +7,19 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Représente un index de noms d'arrêts permettant d'effectuer des recherches
- * basées sur une requête textuelle. L'index gère les noms principaux et
- * alternatifs, et retourne les noms principaux correspondants triés par pertinence.
- * La classe est immuable.
+ * Immutable index of stop names that supports text-based search with partial and
+ * accent-/case-insensitive matching.  It handles both primary and alternative names,
+ * returning a list of matching primary stop names sorted by relevance.
+ *
+ * @author Riad Elhariry
+ * @author Jad Chahed Ouazzani
  */
 public final class StopIndex {
 
+    /**
+     * Maps each base character to a regular expression character class that matches
+     * itself and all its accented variants.
+     */
     private static final Map<Character, String> ACCENT_MAP = Map.ofEntries(
             Map.entry('a', "[aáàâä]"),
             Map.entry('e', "[eéèêë]"),
@@ -21,47 +27,68 @@ public final class StopIndex {
             Map.entry('o', "[oóòôö]"),
             Map.entry('u', "[uúùûü]"),
             Map.entry('c', "[cç]"));
+
     private final List<StopInfo> allSearchableStops;
     private final List<String> sortedMainStops;
 
     /**
-     * Construit un nouvel index d'arrêts.
+     * Constructs a new {@code StopIndex}.
      *
-     * @param stops    La liste des noms d'arrêts principaux.
-     * @param altNames La table associant des noms alternatifs à leur nom principal.
-     * @throws NullPointerException si stops ou altNames est nul.
+     * @param stops    the list of primary stop names; must not be null
+     * @param altNames a map from alternative stop names to their corresponding primary names; must not be null
+     * @throws NullPointerException if {@code stops} or {@code altNames} is null
      */
     public StopIndex(List<String> stops, Map<String, String> altNames) {
-        Stream<StopInfo> mainStops = stops.stream().filter(s -> (s != null && !s.isEmpty())).map(s -> new StopInfo(s, s));
-        Stream<StopInfo> altStops = altNames.entrySet().stream().filter(e -> !(e.getKey() == null && e.getKey().isEmpty()) && !(e.getValue() == null && e.getValue().isEmpty())).map(e -> new StopInfo(e.getKey(), e.getValue()));
+        Stream<StopInfo> mainStops = stops.stream()
+                .filter(s -> (s != null && !s.isEmpty()))
+                .map(s -> new StopInfo(s, s));
+        Stream<StopInfo> altStops = altNames.entrySet().stream()
+                .filter(e -> !(e.getKey() == null && e.getKey().isEmpty())
+                        && !(e.getValue() == null && e.getValue().isEmpty()))
+                .map(e -> new StopInfo(e.getKey(), e.getValue()));
         this.allSearchableStops = Stream.concat(mainStops, altStops).toList();
         this.sortedMainStops = new ArrayList<>(new TreeSet<>(stops));
     }
 
     /**
-     * Compile une sous-requête en Pattern Java, en respectant les règles de sensibilité à la casse et d'équivalence
-     * des accents spécifiées.
+     * Compiles a single sub-query string into a {@link Pattern}, applying
+     * accent‐equivalence mappings and optional case‐insensitivity.
      *
-     * @param subQuery La sous-requête originale.
-     * @return Le Pattern compilé.
+     * <p>If the sub-query contains only lowercase letters, the resulting pattern
+     * will ignore case differences.  Each unaccented letter is replaced by a
+     * character class matching it and its accented variants.</p>
+     *
+     * @param subQuery the raw sub-query text
+     * @return a compiled {@code Pattern} for matching that sub-query
      */
     private static Pattern compileSubQueryToPattern(String subQuery) {
         String regex = subQuery.chars().mapToObj(cp -> {
             char c = (char) cp;
-            return (Character.isLowerCase(c) && ACCENT_MAP.containsKey(c)) ? ACCENT_MAP.get(c) : Pattern.quote(String.valueOf(c));
+            return (Character.isLowerCase(c) && ACCENT_MAP.containsKey(c))
+                    ? ACCENT_MAP.get(c)
+                    : Pattern.quote(String.valueOf(c));
         }).collect(Collectors.joining());
 
         boolean queryIsLowerCase = subQuery.chars().noneMatch(Character::isUpperCase);
         int flags = Pattern.UNICODE_CASE;
-        return Pattern.compile(regex, queryIsLowerCase ? flags |= Pattern.CASE_INSENSITIVE : flags);
+        if (queryIsLowerCase) {
+            flags |= Pattern.CASE_INSENSITIVE;
+        }
+        return Pattern.compile(regex, flags);
     }
 
     /**
-     * Calcule le score de pertinence d'un nom d'arrêt pour une requête donnée.
+     * Calculates the relevance score of a stop name against the provided list of
+     * sub-query patterns.  Returns zero if any pattern does not match.
      *
-     * @param stopName   Le nom de l'arrêt (original).
-     * @param patterns   La liste des Patterns compilés correspondant aux subQueries.
-     * @return Le score total de pertinence.
+     * <p>For each matching pattern, the base score is the integer percentage of
+     * stopName length covered by the match.  This base is multiplied by 4 if the
+     * match is at the start of a word, and by 2 if at the end of a word, then
+     * summed across all patterns.</p>
+     *
+     * @param stopName the stop name to score
+     * @param patterns the compiled sub-query patterns
+     * @return the total relevance score, or 0 if {@code stopName} is empty or any pattern fails to match
      */
     private int calculateScore(String stopName, List<Pattern> patterns) {
         if (stopName.isEmpty()) return 0;
@@ -71,39 +98,47 @@ public final class StopIndex {
             Matcher m = p.matcher(stopName);
             m.find();
             int start = m.start();
-            int end = m.end();
-            int len = end - start;
+            int end   = m.end();
+            int len   = end - start;
 
             int base = (int) Math.floor(len * 100.0 / stopName.length());
-
             int mult = 1;
-
-            if ((start == 0 || !Character.isLetter(stopName.charAt(start - 1)))) {
+            if (start == 0 || !Character.isLetter(stopName.charAt(start - 1))) {
                 mult *= 4;
             }
-
-            if ((end == stopName.length() || !Character.isLetter(stopName.charAt(end)))) {
+            if (end == stopName.length() || !Character.isLetter(stopName.charAt(end))) {
                 mult *= 2;
             }
             return base * mult;
-
         }).sum();
     }
 
     /**
-     * Recherche les arrêts correspondant à une requête donnée.
+     * Returns a list of primary stop names matching the given textual query,
+     * sorted by descending relevance score, then alphabetically, limited to
+     * {@code maxResults} entries, with no duplicates.
      *
-     * @param query      La requête de recherche.
-     * @param maxResults Le nombre maximum de résultats à retourner.
-     * @return Une liste des noms d'arrêts principaux correspondants,
-     * triée par pertinence décroissante, sans doublons, et limitée à maxResults.
+     * <p>The query is split on whitespace into sub-queries; each sub-query is
+     * matched with accent and case rules as defined in
+     * {@link #compileSubQueryToPattern(String)}.</p>
+     *
+     * @param query      the search query (may be null or empty)
+     * @param maxResults the maximum number of results to return
+     * @return a list of matching primary stop names, sorted by relevance then name
      */
     public List<String> stopsMatching(String query, int maxResults) {
         String trimmed = query == null ? "" : query;
-        List<Pattern> patterns = Arrays.stream(trimmed.split("\\s+")).filter(s -> !s.isEmpty()).map(StopIndex::compileSubQueryToPattern).toList();
+        List<Pattern> patterns = Arrays.stream(trimmed.split("\\s+"))
+                .filter(s -> !s.isEmpty())
+                .map(StopIndex::compileSubQueryToPattern)
+                .toList();
         Map<String, Integer> scores = allSearchableStops.stream()
                 .filter(s -> patterns.stream().allMatch(p -> p.matcher(s.searchableName).find()))
-                .collect(Collectors.toMap(StopInfo::primaryName, si -> calculateScore(si.searchableName(), patterns), Integer::max));
+                .collect(Collectors.toMap(
+                        StopInfo::primaryName,
+                        si -> calculateScore(si.searchableName(), patterns),
+                        Integer::max));
+
         return scores.entrySet().stream()
                 .sorted(Map.Entry.<String, Integer>comparingByValue().reversed()
                         .thenComparing(Map.Entry::getKey))
@@ -112,5 +147,12 @@ public final class StopIndex {
                 .toList();
     }
 
+    /**
+     * Helper record associating a searchable name (either primary or alternative)
+     * with its canonical primary name.
+     *
+     * @param searchableName the name used for matching
+     * @param primaryName    the canonical primary stop name
+     */
     private record StopInfo(String searchableName, String primaryName) {}
 }
