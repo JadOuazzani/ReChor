@@ -29,6 +29,15 @@ public record StopField(TextField textField, ObservableValue<String> stopO) {
         listView.setFocusTraversable(false);
         listView.setMaxHeight(240);
 
+        listView.setOnMouseClicked(event -> {
+            String selectedStop = listView.getSelectionModel().getSelectedItem();
+            if (selectedStop != null) {
+                textField.setText(selectedStop);
+                stopProperty.setValue(selectedStop);
+                window.hide();
+            }
+        });
+
         window.getContent().add(listView);
         listView.getItems().setAll(stopIndex.stopsMatching("", 30));
 
@@ -62,16 +71,6 @@ public record StopField(TextField textField, ObservableValue<String> stopO) {
                     listView.scrollTo(selected + 1);
                     event.consume();
                 }
-            }
-            else if (event.getCode() == ENTER) {
-                int selectedIndex = listView.getSelectionModel().getSelectedIndex();
-                    String selectedStop = listView.getItems().get(selectedIndex);
-                    textField.setText(selectedStop);
-                    stopProperty.setValue(selectedStop);
-                    window.hide();
-                    textField.getParent().requestFocus();
-                    event.consume();
-
             }
         });
 
